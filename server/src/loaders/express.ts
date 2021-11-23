@@ -3,6 +3,10 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dummyClass from '@/services/dummyClass';
 import Device from '@/services/Device'
+import Module from '@/services/Module';
+import Dashboard from '@/services/Dashboard';
+import Policy from '@/services/Policy';
+import Others from '@/services/Others';
 
 export default async ({ app }: { app: express.Application }) => {
 
@@ -42,6 +46,59 @@ export default async ({ app }: { app: express.Application }) => {
     app.delete('/devices/:device_idx', Device.deleteDeviceInfo );
     app.delete('/devices/categories/:category_idx', Device.deleteDeviceCategoryInfo );
     app.delete('/devices/environments/:environment_idx', Device.deleteDeviceEnvInfo );
+
+    // Module req
+    app.get('/modules', Module.getAllModule )
+    app.get('/modules/:module_idx',Module.getModuleInfo );
+    app.get('/modules/categories',Module.getAllModuleCategories );
+    app.get('/modules/categories/:category_idx',Module.getModuleCategoryInfo  );
+    app.get('/modules/count',Module.getTotalModuleCount  );
+    app.get('/modules/unregistered',Module.getTotalUnregisteredModuleList );
+    // app.get('/modules/logs', ); => 명단에 없음
+    app.get('/modules/logs/count',Module.getTotalLogCount );
+    app.get('/modules/:module_idx/logs/count',Module.getLogCountByModule );
+
+    app.post('/modules',Module.addModule );
+    app.post('/modules/categories',Module.addModuleCategory );
+
+    app.put('/modules/:module_idx', Module.editModuleInfo  );
+    app.put('/modules/categories/:category_idx', Module.editModuleCategoryInfo );
+
+    app.delete('/modules/:module_idx', Module.deleteModule );
+    app.delete('/modules/categories/:category_idx', Module.deleteModuleCategoryInfo );
+
+
+    // Dashboard req
+    app.get('/dashboard/statistics', Dashboard.getAllStats );
+    app.get('/dashboard/logs', Dashboard.getTotalLogCountByTime );
+    app.get('/dashboard/logs/threat', Dashboard.getTotalLogCountByThreat );
+    app.get('/dashboard/logs/group', Dashboard.getTotalLogCountByGroup );
+    app.get('/dashboard/policies', Dashboard.getAppliedPolicy );
+
+    // Policy req
+    app.get('/policies', Policy.getPolicyList );
+    app.get('/policies/:policy_idx', Policy.getPolicyInfo );
+    app.get('/policies/:policy_idx/devices', Policy.getDeviceListByPolicy );
+    app.get('/policies/:policy_idx/download', Policy.downloadPolicyFiles );
+
+    app.post('/policies', Policy.addPolicy );
+    app.post('/policies/:policy_idx/state', Policy.changePolicyState );
+
+    app.put('/policies/:policy_idx',Policy.editPolicy );
+
+    app.delete('/policies/:policy_idx', Policy.deletePolicy );
+
+    // Security req
+    app.get('/securities/categories', Others.getSecurityCategoryList );
+    app.get('/securities/categories/:category_idx', Others.getSecurityCategoryInfo );
+    
+    app.post('/securities/categories', Others.addSecurityCategoryInfo );
+    
+    app.put('/securities/categories/:category_idx', Others.editSecurityCategoryInfo );
+    
+    app.delete('/securities/categories/:category_idx', Others.deleteSecurityCategoryInfo );
+
+
 
     // Proxy, CORS, BodyParser, etc...
     app.enable('trust proxy');

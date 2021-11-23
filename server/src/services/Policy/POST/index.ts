@@ -1,10 +1,10 @@
 import express from 'express';
 
 export default {
-    deleteModule   : (req: express.Request, res : express.Response) => {
+    addPolicy    : (req: express.Request, res : express.Response) => {
 
     },
-    deleteModuleCategoryInfo    : (req: express.Request, res : express.Response) => {
+    changePolicyState     : (req: express.Request, res : express.Response) => {
 
     }
 }
