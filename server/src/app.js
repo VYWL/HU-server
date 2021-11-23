@@ -1,18 +1,22 @@
-const mysql = require('mysql2/promise');
+const express = require('express');
+const loaders = require('./loaders');
+const { PORT } = require('./config');
 
-const dbConnect = async () => {
-    try {
-        const connection = await mysql.createConnection({
-            host: 'db',
-            user: 'root',
-            password: 'root',
-            database: 'hurryup_sedr',
-        });
+// for Debug
+console.clear();
 
-        console.log('MySQL connection success');
-    } catch (err) {
-        console.log(err);
-    }
-};
+async function startServer() {
+    const app = express();
 
-dbConnect();
+    await loaders.default({ expressApp: app });
+
+    app.listen(PORT, err => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        console.log(`Your server is ready !`);
+    });
+}
+
+startServer();
