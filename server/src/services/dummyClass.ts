@@ -1,13 +1,13 @@
 import express from 'express';
+const dummyData = require("../dummy/initTest.json");
 
-export default class dummyClass {
-    constructor() {}
+export default {
+    dummyStatus : (req: express.Request, res : express.Response) => {
+        res.status(200).end();
+    },
 
-    async dummyStatus(req: express.Request, res: express.Response): Promise<void> {
-        // something
-    }
-
-    public async dummyService(req: express.Request, res: express.Response): Promise<void> {
-        // something
+    dummyService: (req: express.Request, res : express.Response) => {
+    res.status(200);
+    res.json(dummyData).end();
     }
 }
