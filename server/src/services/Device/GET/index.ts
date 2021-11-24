@@ -1,6 +1,6 @@
 import express from "express";
 import {query} from '@/loaders/mysql';
-import { defaultResponse, response } from "@/api";
+import { defaultResponse, getToday, response } from "@/api";
 
 export default {
     getAllDeviceList : async (req , res : express.Response) => {
@@ -24,20 +24,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            res.status(404);
-            res.json({
-                ...defaultResponse,
-                message :"FAILED",
-                errors:"올바르지 않은 요청입니다."
-            }).end();
+            response(res, 404);
         }
 
-        res.status(200);
-        res.json({
-            ...defaultResponse,
-            outputs : dbData
-        }).end();
-
+        response(res, 200, dbData);
     },
 
     getDeviceInfo  : async (req: express.Request, res : express.Response) => {
@@ -83,13 +73,15 @@ export default {
         response(res, 200, dbData);
     },
     getDeviceCategoryInfo  : async (req: express.Request, res : express.Response) => {
-        let dbData;
+        const category_idx = Number(req.params.category_idx);
+
+        let dbData = [];
 
         try {
             dbData = await query("SELECT 'idx', idx, 'name', name\
                                 FROM `device_category` \
-                                WHERE `agent` = 0 \
-                                ORDER BY `idx` ASC");
+                                WHERE `agent` = 0 AND idx = ?\
+                                LIMIT 1;", [category_idx]);
 
         } catch (err) {
             console.log(err);
@@ -99,13 +91,43 @@ export default {
 
         response(res, 200, dbData);
     },
-    getDeviceEnvList   : (req: express.Request, res : express.Response) => {
+    getDeviceEnvList   : async (req: express.Request, res : express.Response) => {
+        let dbData;
 
-    },
-    getDeviceEnvInfo   : (req: express.Request, res : express.Response) => {
+        try {
+            dbData = await query("SELECT 'idx', idx, 'name', name\
+                                FROM `environment` \
+                                ORDER BY `idx` ASC;");
 
+        } catch (err) {
+            console.log(err);
+
+            response(res, 404);
+        }
+
+        response(res, 200, dbData);
     },
+    getDeviceEnvInfo   : async (req: express.Request, res : express.Response) => {
+        const environment_idx = Number(req.params.environment_idx);
+        
+        let dbData;
+
+        try {
+            dbData = await query("SELECT 'idx', idx, 'name', name\
+                                FROM `environment` \
+                                WHERE `idx`=?;", [environment_idx]);
+
+        } catch (err) {
+            console.log(err);
+
+            response(res, 404);
+        }
+
+        response(res, 200, dbData);
+    },
+
     getDeviceCount   : (req: express.Request, res : express.Response) => {
+
 
     },
     getUnregisteredDeviceList   : (req: express.Request, res : express.Response) => {
