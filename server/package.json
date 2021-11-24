@@ -10,10 +10,11 @@
     "author": "kimdksu",
     "license": "ISC",
     "dependencies": {
-        "mysql2": "^2.3.3",
         "cors": "^2.8.5",
         "dotenv": "^8.2.0",
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "mysql2": "^2.3.3",
+        "net": "^1.0.2"
     },
     "devDependencies": {
         "@types/agenda": "^2.0.9",

@@ -9,28 +9,36 @@ import Policy from '@/services/Policy';
 import Others from '@/services/Others';
 
 export default async ({ app }: { app: express.Application }) => {
+    const router = express.Router();
+
     // dummy req
     app.get('/status', dummyClass.dummyStatus);
     app.get('/test', dummyClass.dummyService);
 
     // Device req
     app.get('/devices', Device.getAllDeviceList);
-    app.get('/devices/:device_idx', Device.getDeviceInfo);
-    app.get('/devices/categories', Device.getAllDeviceCategories);
+    app.get('/devices/:device_idx(\\d+)', Device.getDeviceInfo);
+
+    app.get('/devices/categories/', Device.getAllDeviceCategories);
     app.get('/devices/categories/:category_idx', Device.getDeviceCategoryInfo);
+
     app.get('/devices/environments', Device.getDeviceEnvList);
     app.get('/devices/environments/:environment_idx', Device.getDeviceEnvInfo);
+
     app.get('/devices/count', Device.getDeviceCount);
     app.get('/devices/unregistered', Device.getUnregisteredDeviceList);
-    app.get('/devices/:device_idx/modules', Device.getModuleListByDevice);
     app.get('/devices/logs', Device.getTotalLog);
-    app.get('/devices/:device_idx/logs', Device.getLogByDevice);
     app.get('/devices/logs/count', Device.getTotalLogCount);
+    app.get('/devices/:device_idx/modules', Device.getModuleListByDevice);
+
+    app.get('/devices/:device_idx/logs', Device.getLogByDevice);
     app.get('/devices/:device_idx/logs/count', Device.getLogCountByDevice);
+
     app.get('/devices/:device_idx/policies', Device.getPolicyListByDevice);
     app.get('/devices/:device_idx/policies/activate', Device.getActivePolicyListByDevice);
     app.get('/devices/:device_idx/policies/inactivate', Device.getInactivePolicyListByDevice);
     app.get('/devices/:device_idx/policies/recommand', Device.getRecommandedPolicyListByDevice);
+
     app.get('/devices/:device_idx/checklists', Device.getRecommandedChecklistByDevice);
     app.get('/devices/:device_idx/live', Device.getIsLiveByDevice);
 
