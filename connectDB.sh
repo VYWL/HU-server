@@ -1,0 +1,1 @@
+sudo docker exec -it $(sudo docker ps -f "name=huserver_db_1" -q) /bin/bash
