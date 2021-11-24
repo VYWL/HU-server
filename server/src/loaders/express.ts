@@ -17,13 +17,16 @@ export default async ({ app }: { app: express.Application }) => {
 
     // Device req
     app.get('/devices', Device.getAllDeviceList);
-    app.get('/devices/:device_idx(\\d+)', Device.getDeviceInfo);
+    app.get('/devices/:device_idx(\\d+)?', Device.getDeviceInfo);
+    // TODO :: 합치기
 
     app.get('/devices/categories/', Device.getAllDeviceCategories);
-    app.get('/devices/categories/:category_idx', Device.getDeviceCategoryInfo);
+    app.get('/devices/categories/:category_idx(\\d+)?', Device.getDeviceCategoryInfo);
+    // TODO :: 합치기
 
     app.get('/devices/environments', Device.getDeviceEnvList);
-    app.get('/devices/environments/:environment_idx', Device.getDeviceEnvInfo);
+    app.get('/devices/environments/:environment_idx(\\d+)?', Device.getDeviceEnvInfo);
+    // TODO :: 합치기
 
     app.get('/devices/count', Device.getDeviceCount);
     app.get('/devices/unregistered', Device.getUnregisteredDeviceList);
