@@ -10,9 +10,10 @@ export default async () => {
             password: DB_PW,
             database: DB_NAME,
         });
-
+	
         console.log('MySQL connection success');
     } catch (err) {
         console.log(err);
     }
+    console.log({DB_ID, DB_PW, DB_NAME, DB_HOST});
 };
