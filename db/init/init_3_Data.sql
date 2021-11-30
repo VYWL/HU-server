@@ -55,7 +55,6 @@ INSERT INTO `device` (`idx`, `name`, `model_name`, `serial_number`, `environment
 
 -- 테이블 데이터 hurryup_sedr.security_category:~16 rows (대략적) 내보내기
 DELETE FROM `security_category`;
-/*!40000 ALTER TABLE `security_category` DISABLE KEYS */;
 INSERT INTO `security_category` (`idx`, `main`, `sub`) VALUES
 	(1, '기기', '서비스 설정'),
 	(2, '기기', '데이터 보호'),
