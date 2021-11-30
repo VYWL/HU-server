@@ -228,3 +228,14 @@ CREATE TABLE IF NOT EXISTS `process` (
   KEY `process_device` (`device_idx`),
   FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4447 DEFAULT CHARSET=utf8mb4 COMMENT='장비가 실행하고 있는 프로세스 목록을 알려주는 테이블';
+
+CREATE TABLE IF NOT EXISTS `policy_custom` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '사용자 정의 정책 테이블 INDEX',
+  `policy_idx` int(11) unsigned DEFAULT NULL COMMENT '적용한 정책 idx',
+  `device_idx` int(11) unsigned DEFAULT NULL COMMENT '정책이 적용된 장치의 idx',
+  `config` JSON DEFAULT NULL COMMENT '적용한 정책에 대한 argument',
+  `isActive` bit(1) DEFAULT NULL COMMENT '정책 활성화 여부',
+  PRIMARY KEY (`idx`),
+  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`),
+  FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`)
+) ENGINE=InnoDB CHARSET=utf8mb4 COMMENT='현재 적용된 정책을 저장하는 테이블';

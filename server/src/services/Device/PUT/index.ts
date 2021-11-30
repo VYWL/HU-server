@@ -1,13 +1,67 @@
+import { getToday, response } from '@/api';
+import { query } from '@/loaders/mysql';
 import express from 'express';
 
 export default {
-    editDeviceInfo : (req: express.Request, res : express.Response) => {
+    editDeviceInfo: async (req: express.Request, res: express.Response) => {
+        const device_idx = req.params.device_idx;
 
+        const { name, model_number, serial_number, environment, network_info, os_info, service_list, connect_method } =
+            req.body;
+
+        if (!device_idx) response(res, 400, 'Parameter Errors : device_idx does not exist.');
+        // TODO :: body 속성별로 파라미터값이 없다는 오류
+
+        let dbData;
+
+        try {
+            dbData = await query(
+                'UPDATE device set name = ? , model_number = ?, serial_number = ?, device_category_idx = (SELECT device_model_category.device_category_idx\
+                FROM device_model_category\
+                WHERE device_model_category.model_number = ?), environment = ?, network_info = ?, os_info = ?, service_list = ?, connect_method = ?, update_time = ?\
+                where idx = ?;',
+                [
+                    name,
+                    model_number,
+                    serial_number,
+                    model_number,
+                    environment,
+                    network_info,
+                    os_info,
+                    service_list,
+                    `[${connect_method}]`, // TODO :: 배열은 예외처리
+                    getToday(true),
+                    device_idx,
+                ]
+            );
+        } catch (err) {
+            console.log(err);
+            response(res, 500, 'Internal Server Errors : Database error');
+        }
+
+        response(res, 200, { idx: device_idx });
     },
-    editDeviceCategoryInfo  : (req: express.Request, res : express.Response) => {
 
+    editDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
+        const category_idx = req.params.category_idx;
+        const { name, model_number } = req.body;
+
+        if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
+        // TODO :: body 속성 검증
+
+        let dbData;
+
+        try {
+            dbData = await query('UPDATE device_category SET NAME=? WHERE idx=?', [name, category_idx]);
+        } catch (err) {
+            console.log(err);
+            response(res, 500, 'Internal Server Errors : Database error');
+        }
+
+        // TODO 카테고리 모델 번호 기능 추가 필요, API 분할 필요한 듯 (동현)
+
+        response(res, 200, { idx: category_idx });
     },
-    editDeviceEnvInfo  : (req: express.Request, res : express.Response) => {
 
-    }
-}
+    editDeviceEnvInfo: async (req: express.Request, res: express.Response) => {},
+};

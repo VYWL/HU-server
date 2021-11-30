@@ -1,10 +1,6 @@
 import express from 'express';
 
 export default {
-    addModule  : (req: express.Request, res : express.Response) => {
-
-    },
-    addModuleCategory   : (req: express.Request, res : express.Response) => {
-
-    }
-}
+    addModule: async (req: express.Request, res: express.Response) => {},
+    addModuleCategory: async (req: express.Request, res: express.Response) => {},
+};
