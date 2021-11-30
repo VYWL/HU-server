@@ -1,0 +1,6 @@
+FROM hypriot/rpi-mysql
+
+ADD ./my.conf /etc/mysql/my.cnf
+ADD ./init.sh /init.sh
+
+EXPOSE 3306

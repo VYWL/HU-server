@@ -8,7 +8,7 @@ if (envFound.error) {
 
 module.exports = {
     // About service
-    PORT: process.env.HU_SERVICE_PORT,
+    PORT: Number(process.env.HU_SERVICE_PORT),
 
     // About API URL
 
@@ -17,4 +17,6 @@ module.exports = {
     DB_PW: process.env.HU_DATABASE_PW,
     DB_NAME: process.env.HU_DATABASE_NAME,
     DB_HOST: process.env.HU_DATABASE_HOST,
+    HU_SOCKET_PORT: Number(process.env.HU_SOCKET_PORT),
+    HU_SOCKET_HOST: process.env.HU_SOCKET_HOST,
 };

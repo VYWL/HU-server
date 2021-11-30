@@ -1,5 +1,3 @@
-
-
 CREATE TABLE IF NOT EXISTS `device_category` (
   `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '장비 카테고리 idx',
   `name` varchar(20) NOT NULL COMMENT '장비 카테고리 이름',
@@ -42,9 +40,9 @@ CREATE TABLE IF NOT EXISTS `device` (
   KEY `device_category` (`device_category_idx`),
   KEY `network_category_idx` (`network_category_idx`),
   KEY `environment_idx` (`environment_idx`),
-  FOREIGN KEY (`device_category_idx`) REFERENCES `device_category` (`idx`),
-  FOREIGN KEY (`environment_idx`) REFERENCES `environment` (`idx`),
-  FOREIGN KEY (`network_category_idx`) REFERENCES `network_category` (`idx`)
+  CONSTRAINT `device_category` FOREIGN KEY (`device_category_idx`) REFERENCES `device_category` (`idx`),
+  CONSTRAINT `environment_idx` FOREIGN KEY (`environment_idx`) REFERENCES `environment` (`idx`),
+  CONSTRAINT `network_category_idx` FOREIGN KEY (`network_category_idx`) REFERENCES `network_category` (`idx`)
 );
 
 CREATE TABLE IF NOT EXISTS `security_category` (
@@ -67,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `policy` (
   `command` text DEFAULT NULL COMMENT '대응 정책을 실행시키는 명령어',
   PRIMARY KEY (`idx`),
   KEY `policy_category` (`security_category_idx`),
-  FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
+  CONSTRAINT `policy_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=239 DEFAULT CHARSET=utf8mb4 COMMENT='정책 정보를 관리하는 테이블';
 
 CREATE TABLE IF NOT EXISTS `module_category` (
@@ -86,8 +84,8 @@ CREATE TABLE IF NOT EXISTS `device_policy` (
   UNIQUE KEY `device_policy_unique` (`device_idx`,`policy_idx`),
   KEY `policy_idx` (`policy_idx`),
   KEY `device_idx` (`device_idx`),
-  FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`),
-  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
+  CONSTRAINT `policy_idx` FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`),
+  CONSTRAINT `device_idx` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COMMENT='장비에 적용된 정책을 보여주는 테이블';
 
 
@@ -100,9 +98,9 @@ CREATE TABLE IF NOT EXISTS `device_recommand` (
   KEY `device_category_idx` (`device_category_idx`),
   KEY `module_category_idx` (`module_category_idx`),
   KEY `security_category_idx` (`security_category_idx`),
-  FOREIGN KEY (`device_category_idx`) REFERENCES `device_category` (`idx`),
-  FOREIGN KEY (`module_category_idx`) REFERENCES `module_category` (`idx`),
-  FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
+  CONSTRAINT `device_category_idx` FOREIGN KEY (`device_category_idx`) REFERENCES `device_category` (`idx`),
+  CONSTRAINT `module_category_idx` FOREIGN KEY (`module_category_idx`) REFERENCES `module_category` (`idx`),
+  CONSTRAINT `security_category_idx` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COMMENT='장비에 추천하는 대응 정책 및 점검 항목 모읍집을 연결시켜주는 테이블';
 
 CREATE TABLE IF NOT EXISTS `file_descriptor` (
@@ -114,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `file_descriptor` (
   `update_time` timestamp NULL DEFAULT NULL COMMENT '파일 디스크립터 정보 업데이트 시간',
   PRIMARY KEY (`idx`),
   KEY `fd_device` (`device_idx`),
-  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
+  CONSTRAINT `fd_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12752 DEFAULT CHARSET=utf8mb4 COMMENT='프로세스가 사용하는 파일 디스크립터 목록을 보여주는 테이블';
 
 CREATE TABLE IF NOT EXISTS `inspection` (
@@ -151,7 +149,7 @@ CREATE TABLE IF NOT EXISTS `inspection_step` (
   `classify` text DEFAULT NULL COMMENT '점검항목 소분류',
   PRIMARY KEY (`idx`),
   KEY `inspection_security_category` (`security_category_idx`),
-  FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
+  CONSTRAINT `inspection_security_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=236 DEFAULT CHARSET=utf8mb4 COMMENT='점검 항목 단계 정보를 관리하는 테이블';
 
 CREATE TABLE IF NOT EXISTS `module` (
@@ -189,16 +187,16 @@ CREATE TABLE IF NOT EXISTS `log` (
   KEY `log_device` (`device_idx`),
   KEY `log_module` (`module_idx`),
   KEY `log_security_category` (`security_category_idx`),
-  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`),
-  FOREIGN KEY (`module_idx`) REFERENCES `module` (`idx`),
-  FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
+  CONSTRAINT `log_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`),
+  CONSTRAINT `log_module` FOREIGN KEY (`module_idx`) REFERENCES `module` (`idx`),
+  CONSTRAINT `log_security_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5611 DEFAULT CHARSET=utf8mb4 COMMENT='로그테이블';
 
 CREATE TABLE IF NOT EXISTS `module_model_category` (
   `module_category_idx` int(11) unsigned NOT NULL COMMENT '모듈 카테고리 idx',
   `model_number` text NOT NULL COMMENT '모듈 카테고리에 속하는 모델 번호',
   KEY `module_category_model` (`module_category_idx`),
-  FOREIGN KEY (`module_category_idx`) REFERENCES `module_category` (`idx`)
+  CONSTRAINT `module_category_model` FOREIGN KEY (`module_category_idx`) REFERENCES `module_category` (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='모듈 모델이 속하는 카테고리를 알려주는 테이블\r\n(GY-906) => 온도 센서';
 
 CREATE TABLE IF NOT EXISTS `monitoring` (
@@ -211,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `monitoring` (
   PRIMARY KEY (`idx`),
   UNIQUE KEY `monitoring_unique` (`process_name`,`log_path`,`device_idx`) USING HASH,
   KEY `monitoring_device` (`device_idx`),
-  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
+  CONSTRAINT `monitoring_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COMMENT='모니터링 대상을 관리하는 테이블';
 
 CREATE TABLE IF NOT EXISTS `process` (
@@ -226,5 +224,18 @@ CREATE TABLE IF NOT EXISTS `process` (
   `device_idx` int(11) unsigned DEFAULT NULL COMMENT '프로세스를 실행한 장비 idx',
   PRIMARY KEY (`idx`),
   KEY `process_device` (`device_idx`),
-  FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
+  CONSTRAINT `process_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4447 DEFAULT CHARSET=utf8mb4 COMMENT='장비가 실행하고 있는 프로세스 목록을 알려주는 테이블';
+
+CREATE TABLE IF NOT EXISTS `policy_custom` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '사용자 정의 정책 테이블 INDEX',
+  `policy_idx` int(11) unsigned DEFAULT NULL COMMENT '적용한 정책 idx',
+  `device_idx` int(11) unsigned DEFAULT NULL COMMENT '정책이 적용된 장치의 idx',
+  `config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '적용한 정책에 대한 argument',
+  `isActive` bit(1) DEFAULT NULL COMMENT '정책 활성화 여부',
+  PRIMARY KEY (`idx`),
+  KEY `custom_device` (`device_idx`),
+  KEY `custom_policy` (`policy_idx`),
+  CONSTRAINT `custom_policy` FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`),
+  CONSTRAINT `custom_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`)
+) ENGINE=InnoDB CHARSET=utf8mb4 COMMENT='현재 적용된 정책을 저장하는 테이블';

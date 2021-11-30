@@ -8,6 +8,15 @@
 -   Express
 -   Node.js
 
+## 주의 사항
+-   서버에서 DB를 처음 생성할때, CREATE TABLE 및 Dummy Data 삽입은 수동으로 해야함.
+
+```sh
+# sh init.sh 으로 컨테이너를 생성한 상황이라면
+$ sh exec.sh
+# 위 명령어만 실행하면 된다.
+```
+
 ## 설치 방법
 
 ### 우선 git Clone
@@ -17,28 +26,15 @@ $ git clone https://github.com/VYWL/HU-server.git
 $ cd HU-server
 ```
 
-### 초기 패키지 설치
-
-```sh
-$ # 의존성 패키지들을 모두 다운받는 과정
-$ npm install
-```
-
-### 로컬호스트 시작
-
-```sh
-$ npm start
-```
-
 ## 진행 사항
 
 -   [x] 개발 디렉토리 및 Git Repo 커밋.
--   [ ] express를 활용하여 API 통신 테스트
--   [ ] socket.io를 활용하여 에이전트(클라이언트)와 통신 테스트
--   [ ] DB 활성화 (설치 및 연동 + migration)
--   [ ] DB Connect
--   [ ] API 등록 및 유닛 테스트
--   [ ] API 연동 테스트
+-   [x] express를 활용하여 API 통신 테스트
+-   [x] NodeJS 내장 라이브러리인 net을 활용하여 에이전트(클라이언트)와 통신 테스트
+-   [x] DB 활성화 (설치 및 연동 + migration)
+-   [x] DB Connect
+-   [x] API 등록 및 유닛 테스트
+-   [x] API 연동 테스트
 -   [ ] 기타 등등
 
 ## 기타 사항
