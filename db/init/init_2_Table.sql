@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `device` (
   `device_category_idx` int(11) unsigned DEFAULT NULL COMMENT '장비 카테고리 idx',
   `network_category_idx` int(11) unsigned DEFAULT NULL COMMENT '장비 네트워크 카테고리 idx',
   `live` bit(1) NOT NULL DEFAULT b'0' COMMENT '장비 생존 여부',
-  `socket` int(11) unsigned DEFAULT 0 COMMENT '장비 통신 소켓 정보',
+  `socket` text DEFAULT NULL COMMENT '장비 통신 소켓 정보',
   `update_time` timestamp NULL DEFAULT '1970-01-01 00:00:01' COMMENT '장비 정보 업데이트 날짜',
   `network_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '장비 네트워크 정보 모음' CHECK (json_valid(`network_info`)),
   `os_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '장비 OS 정보 모음' CHECK (json_valid(`os_info`)),

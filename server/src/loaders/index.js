@@ -1,6 +1,6 @@
 import expressLoader from './express.ts';
 import { mysqlLoader } from './mysql.ts';
-import socketLoader from './socket.ts';
+import socketLoader from './socket.js';
 
 export default async ({ expressApp }) => {
     await mysqlLoader();
