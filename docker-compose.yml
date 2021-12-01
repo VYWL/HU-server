@@ -8,6 +8,7 @@ services:
             - ./server:/usr/src/app
         ports:
             - 8080:8080
+            - 2031:2031
         networks:
             - db-net
         depends_on:

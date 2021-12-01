@@ -85,3 +85,6 @@ export const genSerialNumber = () => {
 
     return serialNumber;
 };
+
+const regex = /(BOBSTART).*(BOBEND)/g;
+export const resolveMSG = msg => msg.toString().match(regex)[0].replace('BOBSTART', '').replace('BOBEND', '');
