@@ -31,21 +31,22 @@ export default {
 
         response(res, 200, dbData);
     },
-    getPolicyInfo: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
 
-        if (!device_idx) response(res, 400, 'Parameter Errors : idx must be number.');
+    getPolicyInfo: async (req: express.Request, res: express.Response) => {
+        const policy_idx = Number(req.params.policy_idx ?? -1);
+
+        if (policy_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
 
         let dbData;
 
         try {
             dbData = await query(
-                "SELECT p.idx as idx, main, sub, classify, NAME as name, description, IF(isfile = 1, true, false) as isfile, apply_content, release_content, JSON_EXTRACT(argument, '$') as argument, command\
+                "SELECT p.idx as idx, main, sub, classify, NAME as name, description, IF(isfile = 1, true, false) as isfile, apply_content, release_content, p.argument as argument, command\
                             FROM policy p \
                             LEFT JOIN security_category s \
                             ON p.security_category_idx = s.idx \
                             WHERE p.idx = ?;",
-                [device_idx]
+                [policy_idx]
             );
         } catch (err) {
             console.log(err);
@@ -57,10 +58,10 @@ export default {
     },
 
     getDeviceListByPolicy: async (req: express.Request, res: express.Response) => {
-        const policy_idx = req.params.policy_idx;
+        const policy_idx = Number(req.params.policy_idx ?? -1);
 
-        if (!policy_idx) response(res, 400, 'Parameter Errors : idx must be number.');
-
+        if (policy_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
+        
         let dbData;
         const returnObj = { recommand: [], active: [] };
 

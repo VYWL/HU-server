@@ -65,32 +65,18 @@ export default {
         response(res, 200, { idx: dbData['insertId'] });
     },
 
-    // TODO device_model_category가 없음 => Table 명 수정
     addCategory: async (req: express.Request, res: express.Response) => {
-        const { name, model_number } = req.body;
+        const { name, model_name } = req.body;
 
-        console.log(req.body);
+        // TODO :: body 유효성
 
         if (!name) response(res, 400, 'Parameter Errors : name does not exist.');
-        if (!model_number) response(res, 400, 'Parameter Errors : model_number does not exist.');
+        if (!model_name) response(res, 400, 'Parameter Errors : model_name does not exist.');
 
         let dbData;
 
         try {
             dbData = await query('INSERT device_category(NAME) VALUE(?) ON DUPLICATE KEY UPDATE idx = idx', [name]);
-        } catch (err) {
-            console.log(err);
-            console.log('데이터 삽입에 실패했습니다.');
-            response(res, 500, 'Internal Server Errors : Database Error');
-        }
-
-        try {
-            dbData = await query(
-                'INSERT device_model_category(device_category_idx, model_number)\
-            VALUE((SELECT idx FROM device_category WHERE NAME = ?), ?)\
-            ON DUPLICATE KEY UPDATE device_category_idx = device_category_idx',
-                [name, model_number]
-            );
         } catch (err) {
             console.log(err);
             console.log('데이터 삽입에 실패했습니다.');

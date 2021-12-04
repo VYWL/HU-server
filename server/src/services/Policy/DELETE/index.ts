@@ -1,7 +1,7 @@
 import express from 'express';
 
 export default {
-    deletePolicy    : (req: express.Request, res : express.Response) => {
+    deletePolicy    : async (req: express.Request, res : express.Response) => {
 
     }
 }

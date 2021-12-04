@@ -6,7 +6,7 @@ export default {
     editDeviceInfo: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
 
-        const { name, model_number, serial_number, environment, network_info, os_info, service_list, connect_method } =
+        const { name, model_name, serial_number, environment, network_info, os_info, service_list, connect_method } =
             req.body;
 
         if (!device_idx) response(res, 400, 'Parameter Errors : device_idx does not exist.');
@@ -16,15 +16,12 @@ export default {
 
         try {
             dbData = await query(
-                'UPDATE device set name = ? , model_number = ?, serial_number = ?, device_category_idx = (SELECT device_model_category.device_category_idx\
-                FROM device_model_category\
-                WHERE device_model_category.model_number = ?), environment = ?, network_info = ?, os_info = ?, service_list = ?, connect_method = ?, update_time = ?\
+                'UPDATE device set name = ? , model_name = ?, serial_number = ?, environment = ?, network_info = ?, os_info = ?, service_list = ?, connect_method = ?, update_time = ?\
                 where idx = ?;',
                 [
                     name,
-                    model_number,
+                    model_name,
                     serial_number,
-                    model_number,
                     environment,
                     network_info,
                     os_info,
@@ -44,7 +41,7 @@ export default {
 
     editDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = req.params.category_idx;
-        const { name, model_number } = req.body;
+        const { name, model_name } = req.body;
 
         if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
         // TODO :: body 속성 검증

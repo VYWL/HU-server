@@ -3,24 +3,36 @@ import { query } from '@/loaders/mysql';
 import express from 'express';
 
 export default {
-    getSecurityCategoryList: (req: express.Request, res: express.Response) => {},
-    getSecurityCategoryInfo: (req: express.Request, res: express.Response) => {},
+    getSecurityCategoryList: async (req: express.Request, res: express.Response) => {
+        let dbData;
 
-    // getNetworkCategoryList: async (req: express.Request, res: express.Response) => {
-    //     let dbData;
+        try {
+            dbData = await query("SELECT * FROM security_category");
+        }
+        catch (err) {
+            console.log(err);
+            response(res, 500, "Internal server error : Database error");
+        }
 
-    //     try {
-    //         dbData = await query(
-    //             "SELECT 'idx', idx, 'name', name \
-    //         FROM `network_category` \
-    //         ORDER BY `idx` ASC;"
-    //         );
-    //     } catch (err) {
-    //         console.log(err);
-    //         console.log('네트워크 카테고리를 불러올 수 없습니다.');
-    //         response(res, 500, 'Internal Server Errors : Database Errors');
-    //     }
+        response(res, 200, dbData);
 
-    //     response(res, 200, dbData);
-    // },
+    },
+    getSecurityCategoryInfo: async (req: express.Request, res: express.Response) => {
+        const category_idx = Number(req.params.category_idx ?? -1);
+
+        if (category_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
+        
+        let dbData;
+
+        try {
+            dbData = await query("SELECT * FROM security_category\
+                                WHERE idx=?;",[category_idx]);
+        }
+        catch (err) {
+            console.log(err);
+            response(res, 500, "Internal server error : Database error");
+        }
+
+        response(res, 200, dbData);
+    },
 };

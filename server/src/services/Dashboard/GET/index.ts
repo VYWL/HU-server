@@ -118,7 +118,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT a.date, CONCAT('[', GROUP_CONCAT(JSON_OBJECT(a.status, a.avg_col)),']') AS detail, SUM(a.avg_col) AS total\
+                "SELECT a.date, CONCAT('[', GROUP_CONCAT('{' , '\"', a.status , '\"', ':' , a.avg_col, '}'),']') AS detail, SUM(a.avg_col) AS total\
             FROM(\
                 SELECT TIMESTAMPADD(MINUTE, FLOOR(TIMESTAMPDIFF(MINUTE, ?, create_time) / ?) * ?, ?)  AS date\
                 , Count(*) AS avg_col, status\

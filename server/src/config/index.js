@@ -19,4 +19,22 @@ module.exports = {
     DB_HOST: process.env.HU_DATABASE_HOST,
     HU_SOCKET_PORT: Number(process.env.HU_SOCKET_PORT),
     HU_SOCKET_HOST: process.env.HU_SOCKET_HOST,
+
+    // About Protocol code
+    PROCESS_CODE: {
+        DEVICE: 0,
+        MODULE: 1,
+        PROCESS: 2,
+        FILEDESCRIPTOR: 3,
+        MONITORING_LOG: 4,
+        INSPECTION_RESULT: 5,
+
+        // REQUEST
+        MONITORING_REQUEST: 6,
+        POLICY_REQUEST: 7,
+        INSPECTION_REQUEST: 8,
+        CHANGE_INTERVAL_REQUEST: 9,
+        RESPONSE: 10,
+    },
+    
 };

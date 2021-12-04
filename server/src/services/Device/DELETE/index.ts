@@ -22,7 +22,10 @@ export default {
         }
 
         try {
-            dbData = await query('DELETE FROM device where idx = ?;', [device_idx]);
+
+            // 외래키 이슈 => log, inspection_log, module 삭제해야함.
+
+            dbData = await query('DELETE FROM device WHERE idx = ?;', [device_idx]);
         } catch (err) {
             console.log(err);
             response(res, 500, 'Internal Server Errors : Database Errors');
@@ -30,6 +33,7 @@ export default {
 
         response(res, 200, {});
     },
+
     deleteDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = Number(req.params.category_idx ?? -1);
 

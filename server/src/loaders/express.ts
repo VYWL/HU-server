@@ -9,6 +9,7 @@ import Policy from '@/services/Policy';
 import Others from '@/services/Others';
 import Monitoring from '@/services/Monitoring';
 import Network from '@/services/Network';
+import { getToday } from '@/api';
 
 export default async ({ app }: { app: express.Application }) => {
     const router = express.Router();
@@ -59,7 +60,7 @@ export default async ({ app }: { app: express.Application }) => {
 
     app.post('/devices', Device.addDevice);
     // TODO :: categories 에서 category
-    app.post('/devices/category', Device.addCategory);
+    app.post('/devices/categories', Device.addCategory);
     app.post('/devices/environments');
 
     app.put('/devices/:device_idx(\\d+)?', Device.editDeviceInfo);
@@ -141,7 +142,14 @@ export default async ({ app }: { app: express.Application }) => {
     app.get('/networks/categories', Network.getNetworkCategoryList);
     app.get('/networks/categories/:category_idx(\\d+)', Network.getNetworkCategoryInfo);
 
+    app.post('/networks/categories', Network.addNetworkCategoryInfo);
+
+    app.put('/networks/categories/:category_idx(\\d+)', Network.editNetworkCategoryInfo);
+
+    app.delete('/networks/categories/:category_idx(\\d+)', Network.deleteNetworkCategoryInfo);
+
     app.use((req, res, next) => {
+        console.log(`[${getToday(true)}] `);
         const err = new Error('Not Found');
         err['status'] = 404;
         next(err);

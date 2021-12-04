@@ -1,5 +1,7 @@
 import { getToday, response } from '@/api';
+import { PROCESS_CODE } from '@/config';
 import { query } from '@/loaders/mysql';
+import { requestToAgent } from "@/services/Others/Socket";
 import express from 'express';
 
 export default {
@@ -19,11 +21,12 @@ export default {
         }
 
         if (dbData === 0) response(res, 400, `Agent(${device_idx}) is not live`);
-        if (dbData === -1) response(res, 404);
+        else if (dbData === -1) response(res, 404);
+        else {
+            response(res, 200, { agent: dbData });
 
-        response(res, 200, { agent: dbData });
-
-        // TODO :: 여기서 socket 요청 날려야한다
+            requestToAgent(device_idx, PROCESS_CODE.PROCESS, "");
+        }
     },
 
     gatherFileDescriptorList: async (req: express.Request, res: express.Response) => {
@@ -44,14 +47,12 @@ export default {
         }
 
         const agent = dbData[0]['socket'];
-        console.log({ agent, dbData });
-
         if (agent === 0) response(res, 400, `Device(${device_idx}) is not live.`);
         else if (agent === -1) response(res, 404);
         else {
             response(res, 200, { agent: dbData });
 
-            // TODO :: 여기서 socket 요청
+            requestToAgent(device_idx, PROCESS_CODE.FILEDESCRIPTOR, "");
         }
     },
 
@@ -66,28 +67,25 @@ export default {
         if (!process_name) response(res, 400, 'Parameter Errors : process_name does not exist.');
         if (isActive === undefined) response(res, 400, 'Parameter Errors : isActive does not exist.');
 
-        const stateValue = Boolean(isActive) ? 1 : 0;
+        const stateValue = Boolean(isActive);
 
         let dbData;
 
-        try {
-            dbData = await query('SELECT socket FROM device WHERE idx = ?;', [device_idx]);
-        } catch (err) {
-            console.log(err);
-            console.log('디바이스에서 소켓 속성값을 불러오는데 실패했습니다.');
-            response(res, 404);
+        const reqData = {
+            process_name : process_name,
+            log_path: path,
+            activate: isActive
         }
 
-        if (dbData === 0) response(res, 400, `Device(${device_idx}) does not exist.`);
-        if (dbData === -1) response(res, 404);
+        const timestamp = getToday(true);
 
-        // TODO :: 여기서 socket 요청 날려야한다
+        requestToAgent(device_idx, PROCESS_CODE.MONITORING_REQUEST, JSON.stringify(reqData));
 
         try {
             dbData = await query(
                 'INSERT INTO monitoring(process_name, log_path, activate, device_idx, update_time) \
             Values(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE activate = ?, update_time = ?;',
-                [process_name, path, stateValue, device_idx, getToday(true), stateValue, getToday(true)]
+                [process_name, path, stateValue, device_idx, timestamp, stateValue, timestamp]
             );
         } catch (err) {
             console.log(err);

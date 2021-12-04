@@ -19,10 +19,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT 'idx', idx, 'pid', pid, 'ppid', ppid, 'state', state, 'command', command, 'start_time', start_time, 'update_time', update_time\
-            FROM process WHERE device_idx = ?\
-            ORDER BY idx ASC \
-            LIMIT ? OFFSET ?",
+                "SELECT * FROM process WHERE device_idx = ? LIMIT ? OFFSET ?",
                 [device_idx, limit, offset]
             );
         } catch (err) {
@@ -32,6 +29,8 @@ export default {
         }
 
         response(res, 200, dbData);
+
+        // Process 
     },
 
     getFileDescriptorList: async (req: express.Request, res: express.Response) => {
