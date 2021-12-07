@@ -7,8 +7,8 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         const offset = limit * (page - 1);
         let dbData;
@@ -26,16 +26,16 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 500, 'Internal Server Errors : Database Errors');
+            return response(res, 500, 'Internal Server Errors : Database Errors');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getPolicyInfo: async (req: express.Request, res: express.Response) => {
         const policy_idx = Number(req.params.policy_idx ?? -1);
 
-        if (policy_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
+        if (policy_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
 
         let dbData;
 
@@ -51,16 +51,24 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 500, 'Internal Server Errors : Database Errors');
+            return response(res, 500, 'Internal Server Errors : Database Errors');
         }
 
-        response(res, 200, dbData);
+        dbData = [
+            {
+                ...dbData[0],
+                argument : dbData.length !== 0 ? JSON.parse(dbData[0]["argument"]) : null
+            }
+        ]
+
+
+        return response(res, 200, dbData);
     },
 
     getDeviceListByPolicy: async (req: express.Request, res: express.Response) => {
         const policy_idx = Number(req.params.policy_idx ?? -1);
 
-        if (policy_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
+        if (policy_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
         
         let dbData;
         const returnObj = { recommand: [], active: [] };
@@ -77,7 +85,7 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 500, 'Internal Server Errors : Database Errors');
+            return response(res, 500, 'Internal Server Errors : Database Errors');
         }
 
         returnObj['recommand'] = [...dbData];
@@ -94,12 +102,46 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 500, 'Internal Server Errors : Database Errors');
+            return response(res, 500, 'Internal Server Errors : Database Errors');
         }
 
         returnObj['active'] = [...dbData];
 
-        response(res, 200, returnObj);
+        return response(res, 200, returnObj);
     },
+
+    getCustomPolicyList: async (req: express.Request, res: express.Response) => {
+        const filterList = [];
+
+        const device_idx = Number(req.query.device_idx ?? -1);
+        const policy_idx = Number(req.query.policy_idx ?? -1);
+        const activate = req.query.activate;
+        const custom_policy_idx = Number(req.query.idx ?? -1);
+        
+        if (custom_policy_idx !== -1) filterList.push(`pc.idx=${custom_policy_idx}`);
+        else {
+            if(device_idx !== -1) filterList.push(`pc.device_idx=${device_idx}`);
+            if(policy_idx !== -1) filterList.push(`pc.policy_idx=${policy_idx}`);
+            if(activate !== undefined) filterList.push(`pc.activate=${activate ? 1 : 0}`);
+        }
+        
+        let dbData;
+        
+        try {
+            dbData = await query(`SELECT pc.idx as idx, sc.main as main, sc.sub as sub, p.classify as classify, p.name as name, d.name as target, device_idx, p.description as description, activate\
+            FROM policy_custom as pc\
+            JOIN policy as p ON p.idx = pc.policy_idx\
+            JOIN security_category as sc ON sc.idx = pc.security_category_idx\
+            JOIN device as d ON d.idx = pc.device_idx\
+            ${filterList.length !== 0 ? "WHERE " + filterList.join(' AND ') : ""}`);
+        } catch (err) {
+            console.log(err);
+            console.log('사용자 정의 정책 설정값 목록 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+        
+        return response(res, 200, dbData);
+    },
+
     downloadPolicyFiles: async (req: express.Request, res: express.Response) => {},
 };

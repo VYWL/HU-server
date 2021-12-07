@@ -12,8 +12,8 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         const offset = limit * (page - 1);
         let dbData;
@@ -34,7 +34,7 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
         dbData = dbData.map(e => {
@@ -45,7 +45,7 @@ export default {
             return { ...e, live: isLive };
         });
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getDeviceInfo: async (req: express.Request, res: express.Response) => {
@@ -69,10 +69,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
 
         // UPDATE DEVICE INFO
         requestToAgent(device_idx, PROCESS_CODE.DEVICE, "");
@@ -91,10 +91,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
@@ -113,10 +113,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getDeviceEnvList: async (req: express.Request, res: express.Response) => {
@@ -131,10 +131,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getDeviceEnvInfo: async (req: express.Request, res: express.Response) => {
@@ -152,10 +152,10 @@ export default {
         } catch (err) {
             console.log(err);
 
-            response(res, 404);
+            return response(res, 404);
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getDeviceCount: async (req: express.Request, res: express.Response) => {
@@ -165,18 +165,18 @@ export default {
             dbData = await query('SELECT COUNT(*) as device_count FROM device');
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getUnregisteredDeviceList: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         const offset = limit * (page - 1)
 
@@ -198,20 +198,141 @@ export default {
             // TODO :: 그냥 Device 관련 조회 쿼리 전부 통일해야함.
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internel Server Error : Database error');
+            return response(res, 500, 'Internel Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getStatisticsByDevice: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
+        const device_idx = Number(req.params.device_idx ?? -1);
 
         const start = req.query.start ?? '1970-01-01';
         const unitTime = Number(req.query.time ?? 5);
+        const end = getToday();
 
-        response(res, 404);
-        // TODO :: Dashboard API 변형
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
+        if (start === '1970-01-01') return response(res, 400, 'Parameter Errors : startDate must be date.');
+        
+        let returnData = [];
+
+        let dbData;
+        try {
+            dbData = await query(
+                'SELECT status, Count(*) AS count\
+                                FROM log\
+                                WHERE TIMESTAMP(?) <= TIMESTAMP(create_time) AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?) AND device_idx = ?\
+                                GROUP BY status\
+                                ORDER BY STATUS ASC;',
+                [start, 0, end, device_idx]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('해당 기간 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'total',
+            data: [...dbData],
+        });
+
+        try {
+            dbData = await query(
+                'SELECT status, Count(*) AS count\
+                                FROM log\
+                                WHERE TIMESTAMP(?) <= TIMESTAMP(create_time) AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?) AND device_idx = ?\
+                                GROUP BY status\
+                                ORDER BY STATUS ASC;',
+                [start, -unitTime, end, device_idx]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('이전 기간 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'prev',
+            data: [...dbData],
+        });
+
+        try {
+            dbData = await query(
+                'SELECT COUNT(*) AS type, SUM(attack) AS total_attack\
+                                FROM(SELECT security_category_idx, COUNT(*) AS attack\
+                                    FROM log\
+                                    WHERE security_category_idx IS NOT NULL AND TIMESTAMP(?) <= TIMESTAMP(create_time)\
+                                        AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?) AND device_idx = ?\
+                                    GROUP BY security_category_idx)a; ',
+                [start, 0, end, device_idx]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('위협 로그 통계를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'threat',
+            data: [...dbData],
+        });
+
+
+        try {
+            dbData = await query(
+                'SELECT COUNT(*) AS type, SUM(attack) AS total_attack\
+                                FROM(SELECT security_category_idx, COUNT(*) AS attack\
+                                    FROM log\
+                                    WHERE security_category_idx IS NOT NULL AND TIMESTAMP(?) <= TIMESTAMP(create_time)\
+                                        AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?) AND device_idx = ?\
+                                    GROUP BY security_category_idx)a; ',
+                [start, -unitTime, end, device_idx]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('이전 위협 로그 통계를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'threatPrev',
+            data: [...dbData],
+        });
+
+        return response(res, 200, returnData);
+    },
+
+    getStatisticsByThreat: async (req: express.Request, res: express.Response) => {
+        const device_idx = Number(req.params.device_idx ?? -1);
+
+        const start = req.query.start ?? '1970-01-01';
+        const end = getToday();
+
+        if(device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
+
+        let dbData;
+
+        try { 
+            dbData = await query(
+                "SELECT a.main as main, a.sub as sub, a.log_count as count, a.log_percent * 100 as percent\
+                FROM\
+                (SELECT sc.main, sc.sub, COUNT(*) AS log_count, COUNT(*) / (SELECT COUNT(*) FROM log WHERE security_category_idx IS NOT NULL) AS log_percent\
+                    FROM log l\
+                    JOIN security_category sc ON sc.idx = l.security_category_idx\
+                    WHERE DATE(?) <= DATE(create_time) AND DATE(create_time) <= DATE(?) AND l.device_idx = ?\
+                    GROUP BY security_category_idx\
+                )a",
+            [start, end, device_idx]
+        );
+
+        } catch(err) {
+            console.log(err);
+            return response(res, 500, 'Internal Server Error : Database error');
+        }
+
+
+        return response(res, 200, dbData);
     },
 
     getModuleListByDevice: async (req: express.Request, res: express.Response) => {
@@ -222,8 +343,8 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         const offset = limit * (page - 1);
 
@@ -241,18 +362,18 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getTotalLog: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         const offset = limit * (page - 1);
 
@@ -269,10 +390,10 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getLogByDevice: async (req: express.Request, res: express.Response) => {
@@ -280,9 +401,9 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
-        if (!device_idx) response(res, 400, 'Parameter Errors : idx must be number.');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (!device_idx) return response(res, 400, 'Parameter Errors : idx must be number.');
 
         const offset = limit * (page - 1);
 
@@ -300,10 +421,10 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getTotalLogCount: async (req: express.Request, res: express.Response) => {
@@ -313,10 +434,10 @@ export default {
             dbData = await query('SELECT COUNT(*) as total_log_count FROM log l');
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getLogCountByDevice: async (req: express.Request, res: express.Response) => {
@@ -330,10 +451,10 @@ export default {
             dbData = await query('SELECT COUNT(*) as log_count FROM log l WHERE device_idx = ?;', [device_idx]);
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     getPolicyListByDevice: async (req: express.Request, res: express.Response) => {
@@ -368,10 +489,10 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
 
     // TODO :: active 관련해서 병합했음.
@@ -400,10 +521,10 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
     getRecommandedInspectionByDevice: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
@@ -411,8 +532,8 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
-        if (page === -1) response(res, 400, 'Parameter Errors : page must be number.');
-        if (limit === -1) response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
         // TODO :: IF문 작성
 
@@ -434,11 +555,12 @@ export default {
             );
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
+
     getIsLiveByDevice: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
 
@@ -450,9 +572,9 @@ export default {
             dbData = await query('SELECT IF(live=1, TRUE,FALSE) as isLive FROM device WHERE idx=?', [device_idx]);
         } catch (err) {
             console.log(err);
-            response(res, 500, 'Internal Server Error : Database error');
+            return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        response(res, 200, { isLive: dbData[0]['isLive'] === 1 });
+        return response(res, 200, { isLive: dbData[0]['isLive'] === 1 });
     },
 };

@@ -23,7 +23,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('해당 기간 정보를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         returnData.push({
@@ -43,7 +43,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('이전 기간 정보를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         returnData.push({
@@ -64,7 +64,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('위협 로그 통계를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         returnData.push({
@@ -81,7 +81,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('장비 카테고리 수, 장비 수 통계를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         returnData.push({
@@ -98,7 +98,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('모듈 카테고리 수, 모듈 수 통계를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         returnData.push({
@@ -106,7 +106,7 @@ export default {
             data: [...dbData],
         });
 
-        response(res, 200, returnData);
+        return response(res, 200, returnData);
     },
 
     getTotalLogCountByTime: async (req: express.Request, res: express.Response) => {
@@ -132,7 +132,7 @@ export default {
         } catch (err) {
             console.log(err);
             console.log('해당 기간 정보를 불러오는데에 실패했습니다.');
-            response(res, 404);
+            return response(res, 404);
         }
 
         dbData = dbData.map(e => {
@@ -155,7 +155,7 @@ export default {
             return newElem;
         });
 
-        response(res, 200, dbData);
+        return response(res, 200, dbData);
     },
     getTotalLogCountByThreat: async (req: express.Request, res: express.Response) => {},
     getTotalLogCountByGroup: async (req: express.Request, res: express.Response) => {},

@@ -8,6 +8,7 @@ const findDevice = device_idx => socketClientPool.find(e => Number(e['ref'].devi
 const insertProcessList = async (socket_info, data) => {
     const processList = JSON.parse(data);
     const device_idx = socket_info['ref'].device_idx;
+    const timestamp = getToday(true);
 
     if (device_idx === -1) return;
     let dbData;
@@ -17,8 +18,8 @@ const insertProcessList = async (socket_info, data) => {
 
         try {
             dbData = await query(
-                "Insert into process(pid, ppid, name, state, command, start_time, update_time, device_idx) \
-            values (?, ?, ?, ?, ?, ?, ?, ?);",
+                "Insert into process(pid, ppid, name, state, command, start_time, update_time, device_idx) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\
+            ON DUPLICATE KEY UPDATE update_time = ?;",
                 [
                     nowProcess.pid,
                     nowProcess.ppid,
@@ -26,8 +27,9 @@ const insertProcessList = async (socket_info, data) => {
                     nowProcess.state,
                     nowProcess.cmdline,
                     nowProcess.start_time,
-                    getToday(true),
+                    timestamp,
                     device_idx,
+                    timestamp
                 ]
             );
         } catch (err) {
@@ -39,6 +41,7 @@ const insertProcessList = async (socket_info, data) => {
 const insertFileDescriptorList = async (socket_info, data) => {
     const fdList = JSON.parse(data);
     const device_idx = socket_info['ref'].device_idx;
+    const timestamp = getToday(true);
 
     if (device_idx === -1) return;
 
@@ -49,8 +52,9 @@ const insertFileDescriptorList = async (socket_info, data) => {
 
         try {
             dbData = await query(
-                'Insert into file_descriptor(pid, name, path, device_idx, update_time) values (?, ?, ?, ?, ?);',
-                [nowFD.pid, nowFD.fd_name, nowFD.real_path, device_idx, getToday(true)]
+                'Insert into file_descriptor(pid, name, path, device_idx, update_time) values (?, ?, ?, ?, ?)\
+                ON DUPLICATE KEY UPDATE update_time = ?;',
+                [nowFD.pid, nowFD.fd_name, nowFD.real_path, device_idx, timestamp, timestamp]
             );
         } catch (err) {
             console.log(err);
@@ -61,6 +65,7 @@ const insertFileDescriptorList = async (socket_info, data) => {
 const insertMonitoringResult = async (socket_info, data) => {
     const monitorResult = JSON.parse(data);
     const device_idx = socket_info['ref'].device_idx;
+    const timestamp = getToday(true);
 
     if (device_idx === -1) return;
 
@@ -75,9 +80,9 @@ const insertMonitoringResult = async (socket_info, data) => {
                 monitorResult.log_path,
                 monitorResult.activate,
                 device_idx,
-                getToday(true),
+                timestamp,
                 monitorResult.activate,
-                getToday(true),
+                timestamp,
             ]
         );
     } catch (err) {
@@ -89,6 +94,7 @@ const insertMonitoringResult = async (socket_info, data) => {
 const insertMonitoringLog = async (socket_info, data) => {
     const monitorInfo = JSON.parse(data);
     const device_idx = socket_info['ref'].device_idx;
+    const timestamp = getToday(true);
 
     if (device_idx === -1) return;
 
@@ -103,7 +109,7 @@ const insertMonitoringLog = async (socket_info, data) => {
                 '모니터링 로그 데이터 입니다.',
                 device_idx,
                 data,
-                getToday(true),
+                timestamp,
                 'Agent',
                 'INFO_TEST',
                 'Device',
@@ -122,7 +128,7 @@ const updateDeviceInfo = async (socket_info, data) => {
     const osInfo = JSON.stringify(info['metainfo']['os_info']);
     const networkInfo = JSON.stringify(info['metainfo']['network_info']);
     const serviceList = JSON.stringify(info['metainfo']['service_list']);
-    const isLive = info['metainfo']['live'];
+    const isLive = info['metainfo']['live'] ?? true;
     const connect_method = JSON.stringify(info['metainfo']['connect_method']);
     const serialNumber = info['serial_number'];
     const update_time = getToday(true);
@@ -155,12 +161,13 @@ const updateDeviceStatus = async (socket_info, data) => {
     const info = JSON.parse(data);
 
     const socketCode = socket_info['ref'].id;
+    const timestamp = getToday(true);
 
     let dbData;
 
     try {
         dbData = await query('UPDATE device SET update_time=?, socket=0, live=0 WHERE socket=?;', [
-            getToday(true),
+            timestamp,
             socketCode,
         ]);
     } catch (err) {

@@ -8,6 +8,6 @@ sudo docker-compose up --build -d
 
 sleep 5
 
-sh exec.sh
+sudo docker exec $(sudo docker ps -f "name=hu-server_db_1" -q) sh init.sh
 
 sudo docker-compose logs -f

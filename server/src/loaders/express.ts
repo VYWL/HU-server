@@ -48,6 +48,7 @@ export default async ({ app }: { app: express.Application }) => {
 
     app.get('/devices/:device_idx/logs', Device.getLogByDevice);
     app.get('/devices/:device_idx/logs/count', Device.getLogCountByDevice);
+    app.get('/devices/:device_idx/logs/attack', Device.getStatisticsByThreat);
 
     app.get('/devices/:device_idx(\\d+)/policies', Device.getPolicyListByDevice);
     // app.get('/devices/:device_idx(\\d+)/policies/activate', Device.getActivePolicyListByDevice);
@@ -103,15 +104,19 @@ export default async ({ app }: { app: express.Application }) => {
 
     // Policy req
     app.get('/policies', Policy.getPolicyList);
-    app.get('/policies/:policy_idx(\\d+)', Policy.getPolicyInfo);
+    app.get('/policies/custom', Policy.getCustomPolicyList);
+    app.get('/policies/:policy_idx(\\d+)?', Policy.getPolicyInfo);
     app.get('/policies/:policy_idx(\\d+)/devices', Policy.getDeviceListByPolicy);
     app.get('/policies/:policy_idx(\\d+)/download', Policy.downloadPolicyFiles);
 
     app.post('/policies', Policy.addPolicy);
+    app.post('/policies/custom', Policy.addCustomPolicy);
     // app.post('/policies/:policy_idx(\\d+)/state', Policy.changePolicyState); 존재이유?
 
+    app.put('/policies/custom', Policy.editCustomPolicy);
     app.put('/policies/:policy_idx(\\d+)', Policy.editPolicy);
 
+    app.delete('/policies/custom/:custom_policy_idx(\\d+)', Policy.deleteCustomPolicy);
     app.delete('/policies/:policy_idx(\\d+)', Policy.deletePolicy);
 
     // Security req
@@ -125,18 +130,22 @@ export default async ({ app }: { app: express.Application }) => {
     app.delete('/securities/categories/:category_idx(\\d+)', Others.deleteSecurityCategoryInfo);
 
     // Monitoring req
+    app.get('/monitoring', Monitoring.getMonitoringList);
+    app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
+    app.get('/monitoring/log', Monitoring.getLogList);
+    app.get('/monitoring/active', Monitoring.getMonitoringList);
     app.get(
         '/monitoring/:device_idx(\\d+)/process/:process_idx(\\d+)/filedescriptor',
         Monitoring.getFileDescriptorList
     );
     app.get('/monitoring/:device_idx(\\d+)/process', Monitoring.getProcessList);
 
+    app.post('/monitoring', Monitoring.setMonitoringState);
     app.post(
         '/monitoring/:device_idx(\\d+)/process/:process_idx(\\d+)/filedescriptor',
         Monitoring.gatherFileDescriptorList
     );
     app.post('/monitoring/:device_idx(\\d+)/process', Monitoring.gatherProcessList);
-    app.post('/monitoring/:device_idx(\\d+)/state', Monitoring.setMonitoringState);
 
     // Network req
     app.get('/networks/categories', Network.getNetworkCategoryList);
@@ -149,13 +158,13 @@ export default async ({ app }: { app: express.Application }) => {
     app.delete('/networks/categories/:category_idx(\\d+)', Network.deleteNetworkCategoryInfo);
 
     app.use((req, res, next) => {
+        console.log(`ERROR : 404 (${req.path})`)
+
         console.log(`[${getToday(true)}] `);
         const err = new Error('Not Found');
         err['status'] = 404;
         next(err);
     });
-
-    //
 
     // ...More middlewares
 

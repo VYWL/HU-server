@@ -38,6 +38,8 @@ export const response = (res, code, dbData = {}) => {
             }).end();
             break;
     }
+
+    return 0;
 };
 
 export const getToday = (more = false) => {

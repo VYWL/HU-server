@@ -45,6 +45,17 @@ export default async () => {
             totalData = filterQuery(totalData);
         });
 
+        client.on('error', err => {
+            console.log(err);
+
+            const removeSocketClientIdx = socketClientPool.findIndex(e => e.code === socketCode && e.createTime === createTime);
+            socketClientPool.splice(removeSocketClientIdx, 1);
+            
+            editDeviceInfoBySocketCode(socketCode);
+
+            console.log("ERROR :: client shut down");
+        })
+
         client.on('end', () => {
             console.log('Client disconnected');
 
