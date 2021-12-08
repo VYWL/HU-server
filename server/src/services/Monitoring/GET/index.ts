@@ -47,7 +47,7 @@ export default {
         try {
             dbData = await query(
                 `SELECT m.idx as idx, m.process_name as process_name, m.log_path as log_path, m.activate as activate, \
-                m.update_time as update_time, m.log_regex as log_regex, d.idx as idx, d.name as name, d.model_name as mode_name, \
+                m.update_time as update_time, m.log_regex as log_regex, d.idx as device_idx, d.name as name, d.model_name as mode_name, \
                 d.serial_number as serial_number, d.environment_idx as environment_idx, d.device_category_idx as device_category_idx,\
                 d.network_category_idx as network_category_idx FROM monitoring as m \
                 JOIN device as d ON d.idx = m.device_idx\
@@ -263,7 +263,7 @@ export default {
                     WHERE DATE(?) <= DATE(create_time) AND DATE(create_time) <= DATE(?) AND activate = 1\
                     GROUP BY date, STATUS\
                     ) a\
-                GROUP BY a.date",
+                GROUP BY a.date DESC",
                 [start, unitTime, unitTime, start, start, end]
             );
         } catch (err) {
