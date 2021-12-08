@@ -1,9 +1,0 @@
-{
-    "name": "kimdksu",
-    "password": "182bcuabs9c8h12nda0sd!@@DAs82",
-    "description": "Nice to meet you",
-    "arrayTest": [
-        { "type": "object", "key": "1234" },
-        { "type": "object", "key": "12324" }
-    ]
-}
