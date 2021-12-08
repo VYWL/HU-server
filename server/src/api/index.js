@@ -94,4 +94,17 @@ export const resolveMSG = msg => msg.toString().match(queryRegex);
 
 export const filterQuery = msg => msg.replace(totalRegex, "");
 
-export const isComplete = msg => (msg.toString().match(queryRegex) ? true : false)
+export const isComplete = msg => (msg.toString().match(queryRegex) ? true : false);
+
+export const parseList = (arr = [], n = 1) => {
+    const len = arr.length;
+
+    const cnt = Math.floor(len / n) + (Math.floor(len % n) > 0 ? 1 : 0);
+    const returnList = [];
+
+    for (let i = 0; i < cnt; ++i) {
+        returnList.push(arr.splice(0, n));
+    }
+
+    return returnList;
+};

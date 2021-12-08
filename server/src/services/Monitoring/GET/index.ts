@@ -5,6 +5,32 @@ import { query } from '@/loaders/mysql';
 import express from 'express';
 
 export default {
+    
+    getMonitoringDeviceList: async (req: express.Request, res: express.Response) => {
+        let dbData;
+
+        try {
+            dbData = await query("SELECT device_idx from monitoring\
+                                GROUP BY device_idx;")
+
+            let deviceQuery = "";
+            for(let i = 0; i < dbData.length; ++i) {
+                const { device_idx } = dbData[i];
+                
+                if(i) deviceQuery += `OR idx = ${device_idx} `;
+                else deviceQuery += `idx = ${device_idx} `;
+            }
+
+            dbData = await query(`SELECT * from device\
+                                WHERE ${deviceQuery}`);
+        } catch (err) {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        return response(res, 200, dbData);
+    },
+
     getMonitoringList: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
@@ -20,7 +46,10 @@ export default {
 
         try {
             dbData = await query(
-                `SELECT * FROM monitoring as m \
+                `SELECT m.idx as idx, m.process_name as process_name, m.log_path as log_path, m.activate as activate, \
+                m.update_time as update_time, m.log_regex as log_regex, d.idx as idx, d.name as name, d.model_name as mode_name, \
+                d.serial_number as serial_number, d.environment_idx as environment_idx, d.device_category_idx as device_category_idx,\
+                d.network_category_idx as network_category_idx FROM monitoring as m \
                 JOIN device as d ON d.idx = m.device_idx\
                 ${filterActive ? "WHERE activate = 1" : ""}\
                 LIMIT ? OFFSET ?;`,

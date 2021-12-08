@@ -1,7 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import dummyClass from '@/services/dummyClass';
 import Device from '@/services/Device';
 import Module from '@/services/Module';
 import Dashboard from '@/services/Dashboard';
@@ -9,6 +8,7 @@ import Policy from '@/services/Policy';
 import Others from '@/services/Others';
 import Monitoring from '@/services/Monitoring';
 import Network from '@/services/Network';
+import Inspection from '@/services/Inspection';
 import { getToday } from '@/api';
 
 export default async ({ app }: { app: express.Application }) => {
@@ -21,10 +21,6 @@ export default async ({ app }: { app: express.Application }) => {
 
     app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
-
-    // dummy req
-    app.get('/status', dummyClass.dummyStatus);
-    app.get('/test', dummyClass.dummyService);
 
     // Device req
     app.get('/devices', Device.getAllDeviceList);
@@ -131,6 +127,7 @@ export default async ({ app }: { app: express.Application }) => {
 
     // Monitoring req
     app.get('/monitoring', Monitoring.getMonitoringList);
+    app.get('/monitoring/devices/', Monitoring.getMonitoringDeviceList);
     app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
     app.get('/monitoring/log', Monitoring.getTotalParsedLog);
     app.get('/monitoring/log/count', Monitoring.getTotalMonitoringLogCountByTime);
@@ -158,6 +155,22 @@ export default async ({ app }: { app: express.Application }) => {
     app.put('/networks/categories/:category_idx(\\d+)', Network.editNetworkCategoryInfo);
 
     app.delete('/networks/categories/:category_idx(\\d+)', Network.deleteNetworkCategoryInfo);
+
+    // Inspection req
+    app.get('/inspection', Inspection.getInspectionList);
+    app.get('/inspection/task', Inspection.getTaskInfoList);
+    
+    app.post('/inspection/', Inspection.addInspection);
+    app.post('/inspection/task', Inspection.excuteTask);
+
+    app.put('/inspection/:inspection_idx(\\d+)', Inspection.editInspection);
+
+    app.delete('/inspection', Inspection.deleteInspection);
+
+    // Download req
+
+    app.get('/download/ubuntu', Others.getUbuntuBuildFile);
+    app.get('/download/rasp', Others.getRaspBuildFile);
 
     app.use((req, res, next) => {
         console.log(`ERROR : 404 (${req.path})`)

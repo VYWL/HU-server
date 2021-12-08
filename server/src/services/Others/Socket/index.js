@@ -133,6 +133,7 @@ const insertMonitoringLog = async (socket_info, data) => {
 
     console.log({msg: "success", data : dbData});
 };
+
 const updateDeviceInfo = async (socket_info, data) => {
     const info = JSON.parse(data);
 
@@ -187,6 +188,9 @@ const updateDeviceStatus = async (socket_info, data) => {
     }
 };
 
+const sendInspectionRequest = async (socket_info, data) => {
+}
+
 const updateModuleInfo = async (socket_info, data) => {};
 const insertPolicyResult = async (socket_info, data) => {};
 const insertInspectionResult = async (socket_info, data) => {
@@ -204,7 +208,7 @@ const requestToAgent = (device_idx, p_code, bodyData) => {
     const targetDevice = findDevice(device_idx);
     if(!targetDevice) return;
 
-    console.log("Sending To Agent a message")
+    console.log("Sending To Agent a message");
 
     const socketRef = targetDevice['ref'];
 
@@ -249,6 +253,7 @@ const processCodeList = [
     // { protocol: 14, cbFunc: updateDeviceStatus },
     { protocol: PROCESS_CODE.MODULE, cbFunc: updateModuleInfo },
     // { protocol: 12, cbFunc: insertPolicyResult },
+    { protocol: PROCESS_CODE.INSPECTION_REQUEST, cbFunc: sendInspectionRequest},
     { protocol: PROCESS_CODE.INSPECTION_RESULT, cbFunc: insertInspectionResult },
     { protocol: PROCESS_CODE.RESPONSE, cbFunc : handleResponse}
 ];

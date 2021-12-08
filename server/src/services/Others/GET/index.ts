@@ -1,6 +1,7 @@
 import { response } from '@/api';
 import { query } from '@/loaders/mysql';
 import express from 'express';
+import fs from 'fs';
 
 export default {
     getSecurityCategoryList: async (req: express.Request, res: express.Response) => {
@@ -34,5 +35,19 @@ export default {
         }
 
         response(res, 200, dbData);
+    },
+
+    getUbuntuBuildFile: async (req: express.Request, res: express.Response) => {
+        const buildFile = `${__dirname}/../../../data/Build/ubuntu/HurryUp_Agent`
+
+        res.download(buildFile);
+        return;
+    },
+
+    getRaspBuildFile: async (req: express.Request, res: express.Response) => {
+        const buildFile = `${__dirname}/../../../data/Build/rasp/HurryUp_Agent`
+
+        res.download(buildFile);
+        return;
     },
 };

@@ -2,15 +2,11 @@ import net from 'net';
 import fs from 'fs';
 import { FILESERVER_PORT, FILESERVER_HOST } from '@/config';
 
-let FILEPATH = '';
-
 export default async () => { 
     net.createServer(function (socket) {
         socket.on('data', data => {
             const filename = data.toString();
-
-            // TODO :: 자동 옵션 추가 기능. => 함수화
-            FILEPATH = getPath(filename);
+            let FILEPATH = getPath(filename);
 
             try {
                 fs.statSync(FILEPATH);

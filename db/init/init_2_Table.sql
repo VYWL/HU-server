@@ -241,3 +241,29 @@ CREATE TABLE IF NOT EXISTS `policy_custom` (
   CONSTRAINT `custom_policy` FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `custom_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8mb4 COMMENT='현재 적용된 정책을 저장하는 테이블';
+
+CREATE TABLE IF NOT EXISTS `inspection` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Inspection 고유 id',
+  `policy_idx` int(11) unsigned DEFAULT NULL COMMENT '관련 정책 idx',
+  `security_category_idx` int(11) unsigned DEFAULT NULL COMMENT '관련 보안 카테고리 idx',
+  `name` text DEFAULT NULL COMMENT 'task 이름',
+  `target` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '적용 기기 목록',
+  `inspection_config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '인자값 목록',
+  `related_file` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '관련 점검 파일',
+  PRIMARY KEY (`idx`),
+  KEY `inspection_policy` (`policy_idx`),
+  KEY `inspection_security_category` (`security_category_idx`),
+  CONSTRAINT `inspection_policy` FOREIGN KEY (`policy_idx`) REFERENCES `policy` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `inspection_security_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB CHARSET=utf8mb4 COMMENT='점검 정보를 담는 테이블';
+
+CREATE TABLE IF NOT EXISTS `inspection_log` (
+  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ticket 고유 id',
+  `name` text DEFAULT NULL COMMENT 'task 이름',
+  `timestamp` timestamp NULL DEFAULT NULL COMMENT 'task 정보 업데이트 시간',
+  `status` text DEFAULT NULL COMMENT `task 상태`,
+  `total_level` int(11) unsigned DEFAULT NULL COMMENT '전체 level 개수',
+  `now_level` int(11) unsigned DEFAULT NULL COMMENT '현재 level',
+  `process_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'task 단계별 상황',
+  PRIMARY KEY (`idx`)  
+) ENGINE=InnoDB CHARSET=utf8mb4 COMMENT='점검 로그를 담는 테이블';
