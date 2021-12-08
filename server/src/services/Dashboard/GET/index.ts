@@ -6,7 +6,7 @@ export default {
     getAllStats: async (req: express.Request, res: express.Response) => {
         const now = req.query.end ?? getToday();
         const past = req.query.start ?? '1970-01-01';
-        const intervalMinute = 5;
+        const intervalMinute = req.query.time ?? 5;
 
         let returnData = [];
 

@@ -61,13 +61,13 @@ export default {
         const path = String(req.body.path ?? "");
         const process_name = String(req.body.process_name ?? "");
         const isActive = req.body.isActive;
-        const regex = req.body.regex;
+        const regex = req.body.regex ?? "";
 
         if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (path === "") return response(res, 400, 'Parameter Errors : path does not exist.');
         if (process_name === "") return response(res, 400, 'Parameter Errors : process_name does not exist.');
         if (isActive === undefined) return response(res, 400, 'Parameter Errors : isActive does not exist.');
-        if (regex === undefined) return response(res, 400, "Parameter Errors : regex does not exist.")
+        if (regex === "") return response(res, 400, "Parameter Errors : regex does not exist.")
 
         const stateValue = Boolean(isActive);
 

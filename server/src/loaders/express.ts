@@ -100,7 +100,7 @@ export default async ({ app }: { app: express.Application }) => {
     // app.get('/dashboard/policies', Dashboard.getAppliedPolicy);
 
     // Environment req => TODO :: environments(복수형) 아님!!, 이거 Device에 이미 있음. /devices/environments
-    // app.get('/environment/categories', Environment.getDeviceEnvInfo)
+    // app.get('/environments/categories', Environment.getDeviceEnvInfo);
 
     // Policy req
     app.get('/policies', Policy.getPolicyList);
@@ -132,7 +132,9 @@ export default async ({ app }: { app: express.Application }) => {
     // Monitoring req
     app.get('/monitoring', Monitoring.getMonitoringList);
     app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
-    app.get('/monitoring/log', Monitoring.getLogList);
+    app.get('/monitoring/log', Monitoring.getTotalParsedLog);
+    app.get('/monitoring/log/count', Monitoring.getTotalMonitoringLogCountByTime);
+    app.get('/monitoring/statistics', Monitoring.getAllMonitoringStats);
     app.get('/monitoring/active', Monitoring.getMonitoringList);
     app.get(
         '/monitoring/:device_idx(\\d+)/process/:process_idx(\\d+)/filedescriptor',

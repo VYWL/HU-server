@@ -14,7 +14,7 @@ ADD .env ./.env
 COPY . .
 
 
-EXPOSE 8080 2031
+EXPOSE 8080 2031 2032
 
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \

@@ -1,6 +1,10 @@
 import { getToday, makeMsg } from '@/api';
 import { query } from '@/loaders/mysql';
 import { PROCESS_CODE } from '@/config';
+import { exec } from 'child_process';
+import fs from 'fs';
+
+
 
 let socketClientPool = [];
 const findDevice = device_idx => socketClientPool.find(e => Number(e['ref'].device_idx) === Number(device_idx));
@@ -93,6 +97,11 @@ const insertMonitoringResult = async (socket_info, data) => {
 
 const insertMonitoringLog = async (socket_info, data) => {
     const monitorInfo = JSON.parse(data);
+    const log_data = monitorInfo['metainfo']['log_data'];
+    const log_path = log_data["log_path"];
+    const change_data = log_data["change_data"];
+
+
     const device_idx = socket_info['ref'].device_idx;
     const timestamp = getToday(true);
 
@@ -102,22 +111,24 @@ const insertMonitoringLog = async (socket_info, data) => {
 
     try {
         dbData = await query(
-            'INSERT INTO log(event_code, description, device_idx, original_log, create_time, environment, status, layer)\
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
+            'INSERT INTO log(event_code, description, device_idx, original_log, create_time, environment, status, layer, log_path)\
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
             [
                 'E-Monitoring',
                 '모니터링 로그 데이터 입니다.',
                 device_idx,
-                data,
+                change_data,
                 timestamp,
                 'Agent',
                 'INFO_TEST',
                 'Device',
+                log_path
             ]
         );
     } catch (err) {
         console.log(err);
         console.log({msg: "FAILED", data : dbData});
+        return;
     }
 
     console.log({msg: "success", data : dbData});
@@ -178,7 +189,9 @@ const updateDeviceStatus = async (socket_info, data) => {
 
 const updateModuleInfo = async (socket_info, data) => {};
 const insertPolicyResult = async (socket_info, data) => {};
-const insertInspectionResult = async (socket_info, data) => {};
+const insertInspectionResult = async (socket_info, data) => {
+    console.log("Successfully Received!");
+};
 
 // REQUEST
 

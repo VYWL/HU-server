@@ -10,8 +10,6 @@ module.exports = {
     // About service
     PORT: Number(process.env.HU_SERVICE_PORT),
 
-    // About API URL
-
     // About DB
     DB_ID: process.env.HU_DATABASE_ID,
     DB_PW: process.env.HU_DATABASE_PW,
@@ -19,6 +17,8 @@ module.exports = {
     DB_HOST: process.env.HU_DATABASE_HOST,
     HU_SOCKET_PORT: Number(process.env.HU_SOCKET_PORT),
     HU_SOCKET_HOST: process.env.HU_SOCKET_HOST,
+    FILESERVER_PORT: Number(process.env.HU_FILESERVER_PORT), 
+    FILESERVER_HOST: process.env.HU_FILESERVER_HOST, 
 
     // About Protocol code
     PROCESS_CODE: {

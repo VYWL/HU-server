@@ -7,6 +7,7 @@ services:
         ports:
             - 8080:8080
             - 2031:2031
+            - 2032:2032
         networks:
             - db-net
         depends_on:

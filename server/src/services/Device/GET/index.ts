@@ -83,7 +83,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT 'idx' as idx, 'name' as name\
+                            "SELECT idx, name\
                                 FROM `device_category` \
                                 WHERE `agent` = 0 \
                                 ORDER BY `idx` ASC"
@@ -104,7 +104,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT 'idx' as idx, 'name' as name\
+                            "SELECT idx, name\
                                 FROM `device_category` \
                                 WHERE `agent` = 0 AND idx = ?\
                                 LIMIT 1;",
@@ -124,7 +124,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT 'idx' as idx, 'name' as name\
+                            "SELECT idx, name\
                                 FROM `environment` \
                                 ORDER BY `idx` ASC;"
             );
@@ -144,7 +144,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT 'idx' as idx, 'name' as name\
+                            "SELECT idx, name\
                                 FROM `environment` \
                                 WHERE `idx`=?;",
                 [environment_idx]
@@ -381,7 +381,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT l.event_code as event_code, description, l.environment as environment, l.STATUS as status, sc.main as main, sc.sub as sub, l.original_log as original_log, l.layer as layer, l.create_time as create_time\
+                "SELECT l.idx as idx, l.event_code as event_code, description, l.environment as environment, l.STATUS as status, sc.main as main, sc.sub as sub, l.original_log as original_log, l.layer as layer, l.create_time as create_time\
             FROM log l\
             LEFT OUTER JOIN security_category sc\
             ON sc.idx = l.security_category_idx\

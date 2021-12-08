@@ -1,5 +1,5 @@
 import { requestToAgent } from "@/services/Others/Socket";
-import { response } from '@/api';
+import { getToday, response } from '@/api';
 import { PROCESS_CODE } from '@/config';
 import { query } from '@/loaders/mysql';
 import express from 'express';
@@ -20,7 +20,10 @@ export default {
 
         try {
             dbData = await query(
-                `SELECT * FROM monitoring ${filterActive ? "WHERE activate = 1" : ""} LIMIT ? OFFSET ?;`,
+                `SELECT * FROM monitoring as m \
+                JOIN device as d ON d.idx = m.device_idx\
+                ${filterActive ? "WHERE activate = 1" : ""}\
+                LIMIT ? OFFSET ?;`,
                 [limit, offset]
             );
         } catch (err) {
@@ -124,6 +127,49 @@ export default {
         return response(res, 200, dbData);
     },
 
+    getTotalParsedLog: async (req: express.Request, res: express.Response) => {
+        const page = Number(req.query.page ?? -1);
+        const limit = Number(req.query.limit ?? -1);
+
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+
+        const offset = Number(limit) * (Number(page) - 1);
+
+        let dbData;
+
+        try {
+            dbData = await query('SELECT l.idx as idx, l.event_code as event_code, l.description as description, l.device_idx as device_idx, \
+            l.module_idx as module_idx, l.create_time as create_time, l.environment as environment, l.status as status, \
+            l.security_category_idx as security_category_idx, l.layer as layer, l.original_log as original_log, l.log_path as log_path, \
+            m.log_regex as log_regex \
+            FROM log as l \
+            JOIN monitoring as m \
+            ON l.device_idx = m.device_idx AND l.log_path = m.log_path \
+            ORDER BY create_time DESC\
+            LIMIT ? OFFSET ?;', [limit, offset]);
+        } catch (err) {
+            console.log(err);
+            
+            console.log('모니터링 관련 로그 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        dbData = dbData.map(e => {
+            const reg = new RegExp(e["log_regex"] ?? /.*/g);
+            const result = reg.exec(e["original_log"]);
+
+            const returnRow = {
+                ...e,
+                parsedLog : result
+            }
+
+            return returnRow;
+        })
+
+        return response(res, 200, dbData);
+    },
+
     getLogByMonitoringIdx: async (req: express.Request, res: express.Response) => {
         const monitoring_idx = Number(req.params.monitoring_idx ?? -1);
         const page = Number(req.query.page ?? -1);
@@ -168,5 +214,131 @@ export default {
         }
 
         return response(res, 200, dbData);
-    }
+    },
+    
+    getTotalMonitoringLogCountByTime: async (req: express.Request, res: express.Response) => {
+        const start = req.query.start ?? '1970-01-01';
+        const end = getToday();
+        const unitTime = Number(req.query.time ?? 5);
+
+        let dbData;
+
+        try {
+            dbData = await query(
+                "SELECT a.date, CONCAT('[', GROUP_CONCAT('{' , '\"', a.status , '\"', ':' , a.avg_col, '}'),']') AS detail, SUM(a.avg_col) AS total\
+                FROM(\
+                    SELECT TIMESTAMPADD(MINUTE, FLOOR(TIMESTAMPDIFF(MINUTE, ?, create_time) / ?) * ?, ?)  AS date\
+                    , Count(*) AS avg_col, status\
+                    FROM log as l\
+                    JOIN monitoring as m ON l.log_path = m.log_path AND l.device_idx = m.device_idx\
+                    WHERE DATE(?) <= DATE(create_time) AND DATE(create_time) <= DATE(?) AND activate = 1\
+                    GROUP BY date, STATUS\
+                    ) a\
+                GROUP BY a.date",
+                [start, unitTime, unitTime, start, start, end]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('해당 기간 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        dbData = dbData.map(e => {
+            const { date, detail, total } = e;
+
+            const newElem = {};
+            newElem['date'] = date;
+            newElem['total'] = total;
+
+            const detailList = JSON.parse(detail).map(e => Object.entries(e));
+
+            detailList.forEach(e => {
+                const key = `${e[0][0]}`.toLowerCase();
+                const value = e[0][1] ?? 0;
+
+                newElem[key] = value;
+                newElem[`${key}_rate`] = Math.round((value / total) * 1000) / 10;
+            });
+
+            return newElem;
+        });
+
+        return response(res, 200, dbData);
+    },
+
+    
+    getAllMonitoringStats: async (req: express.Request, res: express.Response) => {
+        const now = req.query.end ?? getToday();
+        const past = req.query.start ?? '1970-01-01';
+        const intervalMinute = req.query.time ?? 5;
+
+        let returnData = [];
+
+        let dbData;
+        try {
+            dbData = await query(
+                            'SELECT status, Count(*) AS count\
+                                FROM log as l\
+                                JOIN monitoring as m ON l.log_path = m.log_path AND l.device_idx = m.device_idx\
+                                WHERE TIMESTAMP(?) <= TIMESTAMP(create_time) AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?)\
+                                GROUP BY status\
+                                ORDER BY STATUS ASC;',
+                [past, 0, now]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('해당 기간 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'total',
+            data: [...dbData],
+        });
+
+        try {
+            dbData = await query(
+                            'SELECT status, Count(*) AS count\
+                                FROM log as l\
+                                JOIN monitoring as m ON l.log_path = m.log_path AND l.device_idx = m.device_idx\
+                                WHERE TIMESTAMP(?) <= TIMESTAMP(create_time) AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?)\
+                                GROUP BY status\
+                                ORDER BY STATUS ASC;',
+                [past, -intervalMinute, now]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('이전 기간 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'prev',
+            data: [...dbData],
+        });
+
+        try {
+            dbData = await query(
+                            'SELECT COUNT(*) AS type, SUM(attack) AS total_attack\
+                                FROM(SELECT security_category_idx, COUNT(*) AS attack\
+                                FROM log as l\
+                                JOIN monitoring as m ON l.log_path = m.log_path AND l.device_idx = m.device_idx\
+                                WHERE security_category_idx IS NOT NULL AND TIMESTAMP(?) <= TIMESTAMP(create_time)\
+                                AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?)\
+                                GROUP BY security_category_idx)a; ',
+                [past, 0, now]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('위협 로그 통계를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        returnData.push({
+            description: 'threat',
+            data: [...dbData],
+        });
+
+        return response(res, 200, returnData);
+    },
 };

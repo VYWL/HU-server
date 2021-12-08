@@ -128,7 +128,7 @@ export default {
         let dbData;
         
         try {
-            dbData = await query(`SELECT pc.idx as idx, sc.main as main, sc.sub as sub, p.classify as classify, p.name as name, d.name as target, device_idx, p.description as description, activate\
+            dbData = await query(`SELECT pc.idx as idx, sc.idx as security_category_idx, p.idx as policy_idx, sc.main as main, sc.sub as sub, p.classify as classify, p.name as name, d.name as target, device_idx, p.description as description, activate\
             FROM policy_custom as pc\
             JOIN policy as p ON p.idx = pc.policy_idx\
             JOIN security_category as sc ON sc.idx = pc.security_category_idx\
