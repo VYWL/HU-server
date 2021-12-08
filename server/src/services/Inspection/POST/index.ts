@@ -48,7 +48,7 @@ export default {
         
         // for(let i = 0; i < ticketList.length; ++i) {
         //     const ticket = {
-        //         name : "",
+        //         name : "", // 한묶음씩 돌아야함
         //         timestamp: getToday(true),
         //         total_level
         //     }

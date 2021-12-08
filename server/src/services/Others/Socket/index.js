@@ -17,6 +17,14 @@ const insertProcessList = async (socket_info, data) => {
     if (device_idx === -1) return;
     let dbData;
 
+    try {
+        dbData = await query('DELETE FROM process WHERE device_idx = ?;', [device_idx]);
+    } catch (err) {
+        console.log(err);
+        console.log({msg: "FAILED", data : dbData});
+        return;
+    }
+
     for (let i = 0; i < processList['metainfo'].length; ++i) {
         const nowProcess = processList['metainfo'][i];
 
@@ -50,6 +58,14 @@ const insertFileDescriptorList = async (socket_info, data) => {
     if (device_idx === -1) return;
 
     let dbData;
+
+    try {
+        dbData = await query('DELETE FROM file_descriptor WHERE device_idx = ?;', [device_idx]);
+    } catch (err) {
+        console.log(err);
+        console.log({msg: "FAILED", data : dbData});
+        return;
+    }
 
     for (let i = 0; i < fdList['metainfo'].length; ++i) {
         const nowFD = fdList['metainfo'][i];
@@ -165,7 +181,7 @@ const updateDeviceInfo = async (socket_info, data) => {
         console.log({msg: "FAILED", data : dbData});
     }
 
-    console.log(`Socket Info Updated :: device_idx = ${socket_info["ref"].device_idx}`);
+    console.log(`Socket Info Updated :: port = ${socket_info["ref"].remotePort}, device_idx = ${socket_info["ref"].device_idx}`);
 
 };
 

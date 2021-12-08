@@ -57,7 +57,7 @@ export default async () => {
         })
 
         client.on('end', () => {
-            console.log('Client disconnected');
+            console.log(`Client disconnected :: port = ${client.remotePort}, device_idx = ${client.device_idx}`);
 
             // 본인 ID와 timestamp가 같은 객체를 찾아서 삭제
             const removeSocketClientIdx = socketClientPool.findIndex(e => e.code === socketCode && e.createTime === createTime);
