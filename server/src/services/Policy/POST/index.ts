@@ -59,7 +59,38 @@ export default {
 
         return response(res, 200, dbData);
     },
-    changePolicyState: async (req: express.Request, res: express.Response) => {},
+
+    changePolicyState: async (req: express.Request, res: express.Response) => {
+        const custom_idx = Number(req.params.custom_idx ?? -1);
+
+        if (custom_idx === -1) return response(res, 400, 'Parameter Errors : custom_idx must be number.');
+
+        let dbData;
+    
+        try {
+            dbData = await query("SELECT activate FROM policy_custom\
+                                WHERE idx = ?", [custom_idx]);
+        } catch (err) {
+            console.log(err);
+            console.log('사용자 정의 정책 조회에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        const isActive = dbData[0]["activate"] === 1 ? true : false;
+
+        const newState = !isActive ? 1 : 0;
+    
+        try {
+            dbData = await query("UPDATE policy_custom SET activate = ? WHERE idx = ?", [newState, custom_idx]);
+        } catch (err) {
+            console.log(err);
+            console.log('사용자 정의 정책 상태 수정에 실패했습니다.');
+            return response(res, 404);
+        }
+
+        return response(res, 200, dbData);
+    },
+
     addCustomPolicy: async (req: express.Request, res: express.Response) => {
         const device_idx = Number(req.body.device_idx ?? -1);
         const policy_idx = Number(req.body.policy_idx ?? -1);
@@ -95,27 +126,3 @@ export default {
         return response(res, 200, dbData);
     },
 };
-
-/*
-CREATE TABLE IF NOT EXISTS `policy` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'policy idx',
-
-
-  `classify` text DEFAULT NULL COMMENT '대응 정책 소분류',
-  `name` text DEFAULT NULL COMMENT '대응 정책 이름',
-  `description` text DEFAULT NULL COMMENT '대응 정책 설명',
-  `isfile` BOOLEAN DEFAULT NULL COMMENT '대응 정책 파일 인지 판단하는 컬럼',
-  `apply_content` text DEFAULT NULL COMMENT '대응 정책을 적용시킨 파일이나 스크립트 등',
-  `release_content` text DEFAULT NULL COMMENT '대응 정책을 적용시킨 파일이나 스크립트 등',
-  `argument` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '대응 정책을 실행하는데 필요한 인자값 (사용자 정의 반영)' CHECK (json_valid(`argument`)),
-  `command` text DEFAULT NULL COMMENT '대응 정책을 실행시키는 명령어',
-
-  `security_category_idx` int(11) unsigned DEFAULT NULL COMMENT 'security_category_idx',
-
-  PRIMARY KEY (`idx`),
-  KEY `policy_category` (`security_category_idx`),
-  CONSTRAINT `policy_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=239 DEFAULT CHARSET=utf8mb4 COMMENT='정책 정보를 관리하는 테이블';
-
-
-*/

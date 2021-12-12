@@ -107,7 +107,7 @@ export default async ({ app }: { app: express.Application }) => {
 
     app.post('/policies', Policy.addPolicy);
     app.post('/policies/custom', Policy.addCustomPolicy);
-    // app.post('/policies/:policy_idx(\\d+)/state', Policy.changePolicyState); 존재이유?
+    app.post('/policies/:custom_idx(\\d+)/state', Policy.changePolicyState); 
 
     app.put('/policies/custom', Policy.editCustomPolicy);
     app.put('/policies/:policy_idx(\\d+)', Policy.editPolicy);
@@ -127,7 +127,7 @@ export default async ({ app }: { app: express.Application }) => {
 
     // Monitoring req
     app.get('/monitoring', Monitoring.getMonitoringList);
-    app.get('/monitoring/devices/', Monitoring.getMonitoringDeviceList);
+    app.get('/monitoring/devices/', Monitoring.getMonitoringPossibleDeviceList);
     app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
     app.get('/monitoring/log', Monitoring.getTotalParsedLog);
     app.get('/monitoring/log/count', Monitoring.getTotalMonitoringLogCountByTime);

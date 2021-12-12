@@ -114,43 +114,6 @@ CREATE TABLE IF NOT EXISTS `file_descriptor` (
   CONSTRAINT `fd_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=12752 DEFAULT CHARSET=utf8mb4 COMMENT='프로세스가 사용하는 파일 디스크립터 목록을 보여주는 테이블';
 
-CREATE TABLE IF NOT EXISTS `inspection` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'inspection idx',
-  `name` text DEFAULT NULL COMMENT '점검 항목 모음집 이름',
-  `description` text DEFAULT NULL COMMENT '점검 항목 모음집 설명',
-  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '점검 항목 세부 단계' CHECK (json_valid(`content`)),
-  `update_time` timestamp NULL DEFAULT NULL COMMENT '점검 항목 모음집 정보 갱신 시간',
-  PRIMARY KEY (`idx`)
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COMMENT='점검세부 단계 항목 묶음 테이블';
-
-CREATE TABLE IF NOT EXISTS `inspection_log` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'inspection log idx',
-  `device_idx` int(11) unsigned DEFAULT NULL COMMENT '점검을 수행한 장비 idx',
-  `inspection_idx` int(11) unsigned DEFAULT NULL COMMENT '점검모음집 idx',
-  `result` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '단계별 점검 결과 (idx, time, success)' CHECK (json_valid(`result`)),
-  `success` BOOLEAN DEFAULT NULL COMMENT '전체적인 성공 여부',
-  `create_time` timestamp NULL DEFAULT NULL COMMENT '수행 시간',
-  PRIMARY KEY (`idx`),
-  KEY `inspection_device` (`device_idx`),
-  KEY `inspection_idx` (`inspection_idx`),
-  CONSTRAINT `inspection_device` FOREIGN KEY (`device_idx`) REFERENCES `device` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `inspection_idx` FOREIGN KEY (`inspection_idx`) REFERENCES `inspection` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1001 DEFAULT CHARSET=utf8mb4 COMMENT='점검모음집 수행 로그';
-
-CREATE TABLE IF NOT EXISTS `inspection_step` (
-  `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'inspection step idx',
-  `security_category_idx` int(11) unsigned DEFAULT NULL COMMENT 'security category idx',
-  `name` text DEFAULT NULL COMMENT '점검항목 세부 단계 이름',
-  `description` text DEFAULT NULL COMMENT '점검항목 세부 단계 설명',
-  `isfile` BOOLEAN DEFAULT NULL COMMENT '파일 인지 아닌지 ',
-  `content` text DEFAULT NULL COMMENT '점검항목을 수행하는데 필요한 데이터',
-  `update_time` timestamp NULL DEFAULT NULL COMMENT '점검항목 세부 단계 갱신 시간',
-  `classify` text DEFAULT NULL COMMENT '점검항목 소분류',
-  PRIMARY KEY (`idx`),
-  KEY `inspection_security_category` (`security_category_idx`),
-  CONSTRAINT `inspection_security_category` FOREIGN KEY (`security_category_idx`) REFERENCES `security_category` (`idx`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=236 DEFAULT CHARSET=utf8mb4 COMMENT='점검 항목 단계 정보를 관리하는 테이블';
-
 CREATE TABLE IF NOT EXISTS `module` (
   `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '모듈 idx',
   `device_idx` int(11) unsigned NOT NULL COMMENT '모듈이 속한 장비 idx',
@@ -261,7 +224,7 @@ CREATE TABLE IF NOT EXISTS `inspection_log` (
   `idx` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ticket 고유 id',
   `name` text DEFAULT NULL COMMENT 'task 이름',
   `timestamp` timestamp NULL DEFAULT NULL COMMENT 'task 정보 업데이트 시간',
-  `status` text DEFAULT NULL COMMENT `task 상태`,
+  `status` text DEFAULT NULL COMMENT 'task 상태',
   `total_level` int(11) unsigned DEFAULT NULL COMMENT '전체 level 개수',
   `now_level` int(11) unsigned DEFAULT NULL COMMENT '현재 level',
   `process_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'task 단계별 상황',

@@ -9,21 +9,22 @@ export default {
         let dbData;
 
         try {
-            dbData = await query("SELECT * FROM inspection");
+            dbData = await query("SELECT * FROM inspection;");
         } catch (err) {
             console.log(err);
             return response(res, 500, 'Internal Server Errors : Database Error');
         }
 
         const returnData = [];
+        console.log({msg:`GET /inspection :: dbData(${dbData.length})`});
 
-        for(let i = 0; i < dbData[i]; ++i) {
+        for(let i = 0; i < dbData.length; ++i) {
             const { policy_idx, security_category_idx } = dbData[i];
 
             let policy_data, security_category_data;
 
             try {
-                policy_data = await query("SELECT classify FROM policy WHERE idx = ?", [policy_idx]);
+                policy_data = await query("SELECT classify, name FROM policy WHERE idx = ?", [policy_idx]);
                 security_category_data = await query("SELECT main, sub FROM security_category WHERE idx = ?", [security_category_idx]);
             } catch (err) {
                 console.log(err);
@@ -32,8 +33,8 @@ export default {
 
             returnData.push({
                 ...dbData[i],
-                ...policy_data,
-                ...security_category_data,
+                ...policy_data[0],
+                ...security_category_data[0],
                 inspection_config : JSON.parse(dbData[i]["inspection_config"])
             })
         }
@@ -45,8 +46,7 @@ export default {
         let dbData;
 
         try {
-            dbData = await query("SELECT * FROM inspection_log\
-                                WHERE status is NOT 'FIN'");
+            dbData = await query("SELECT * FROM inspection_log");
         } catch (err) {
             console.log(err);
             return response(res, 500, 'Internal Server Errors : Database Error');
@@ -61,6 +61,11 @@ export default {
             return returnObj;
         })
 
-        return response(res, 200, dbData);
+        const ret = {
+            task_info : dbData,
+            timestamp : getToday(true)
+        }
+
+        return response(res, 200, ret);
     },
 };

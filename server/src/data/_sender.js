@@ -3,9 +3,9 @@ import { getToday } from "@/api";
 const { exec } = require("child_process");
 const fs = require('fs');
 
-export default (fileList = []) => {
+export default async (fileList = [], nowLevel = 0) => {
     const validList = [];
-    const gzFileName = `result_${getToday(true)}.tar.gz`;
+    const gzFileName = `result_${getToday(true)}_${nowLevel}.tar.gz`.replace(/ /g, '').replace(/[:-]/g, '_');
 
     // validation
     for(let i = 0; i < fileList.length; ++i)
@@ -14,18 +14,20 @@ export default (fileList = []) => {
 
         const isExist = fs.existsSync(dir);
 
-        if(!isExist) console.log(`ERROR :: File(${fileList[i]} not exists)`);
+        if(!isExist) console.log(`[ERROR] File(${fileList[i]} not exists)`);
         else validList.push(fileList[i]);
     }
 
     // 압축
-    const query = `tar zcvf ${gzFileName} ${validList.join(' ')}`;
-    exec(query, (err, out) => {
+    
+    const zipFileDir = `${__dirname}/${gzFileName}`;
+    const query = `tar -zcvf ${zipFileDir} -C ${__dirname} ${validList.join(' ')}`;
+    await exec(query, (err, out) => {
         if(err) throw err;
 
-        console.log("Successfully zipped");
-        console.log(out);
-     })
-
+        console.log(`[INFO] ZIP :: ${out}`)
+    })
+    
+    console.log(`[INFO] ${fileList[0]}, ... ( total ${fileList.length} items) successfully zipped`);
     return gzFileName;
 }

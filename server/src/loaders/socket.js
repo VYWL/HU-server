@@ -12,6 +12,7 @@ export default async () => {
         let totalData = "";
         const socketCode = shortid.generate();
         const createTime = new Date().toISOString();
+        
         client.id = socketCode;
         client.createTime = createTime;
         client.device_idx = -1;

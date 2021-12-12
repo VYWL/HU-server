@@ -7,7 +7,7 @@ export default async () => {
         socket.on('data', data => {
             const filename = data.toString();
             let FILEPATH = getPath(filename);
-
+            
             try {
                 fs.statSync(FILEPATH);
               } catch (error) {
@@ -29,7 +29,7 @@ export default async () => {
             console.log(err);
         })
     }).listen(FILESERVER_PORT, FILESERVER_HOST, () => {
-        console.log('File Uploading Server Initialized');
+        console.log(`File Uploading Server Initialized :: ${FILESERVER_PORT}, ${FILESERVER_HOST}`);
     });
 }
 
