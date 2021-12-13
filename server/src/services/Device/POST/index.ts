@@ -4,9 +4,10 @@ import express from 'express';
 
 export default {
     addDevice: async (req: express.Request, res: express.Response) => {
-        const { name, model_name, category, network, environment } = req.body;
+        const { name, init_ip, model_name, category, network, environment } = req.body;
 
         if (!name) return response(res, 400, 'Parameter Errors : name does not exist.');
+        if (!init_ip) return response(res, 400, 'Parameter Errors : init_ip does not exist.');
         if (!model_name) return response(res, 400, 'Parameter Errors : model_name does not exist.');
         if (!category) return response(res, 400, 'Parameter Errors : category does not exist.');
         if (!network) return response(res, 400, 'Parameter Errors : network does not exist.');
@@ -49,18 +50,20 @@ export default {
 
         try {
             dbData = await query(
-                'INSERT INTO `device` (`name`, `model_name`, `serial_number`, `device_category_idx`, `network_category_idx`, `environment_idx`, `update_time`)\
-            VALUES(?, ?, ?,\
+                'INSERT INTO `device` (`name`, `init_ip`, `model_name`, `serial_number`, `device_category_idx`, `network_category_idx`, `environment_idx`, `update_time`)\
+            VALUES(?, ?, ?, ?,\
             (SELECT `idx` FROM `device_category` WHERE `name` = ? AND `agent` = 0),\
             (SELECT `idx` FROM `network_category` WHERE `name` = ?),\
             (SELECT `idx` FROM `environment` WHERE `name` = ?), ?); ',
-                [name, model_name, serial_number, category, network, environment, getToday(true)]
+                [name, init_ip, model_name, serial_number, category, network, environment, getToday(true)]
             );
         } catch (err) {
             console.log(err);
             console.log('데이터 삽입에 실패했습니다.');
             return response(res, 500, 'Internal Server Errors : Database Error');
         }
+
+        // TODO :: 에이전트 연결
 
         return response(res, 200, { idx: dbData['insertId'] });
     },

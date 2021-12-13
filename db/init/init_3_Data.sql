@@ -5942,3 +5942,13 @@ INSERT INTO `process` (`idx`, `pid`, `ppid`, `name`, `state`, `command`, `start_
 -- 	(4, 2, 1, 1, '"{\"column1\":\"1\",\"column2\":\"2\"}"', 0),
 -- 	(5, 2, 3, 1, '"{\"column1\":\"1\",\"column2\":\"2\"}"', 1),
 -- 	(6, 3, 1, 1, '"{\"column1\":\"1\",\"column2\":\"2\"}"', 1);
+
+DELETE FROM `inspection`;
+
+INSERT INTO `inspection` (`idx`, `policy_idx`, `security_category_idx`, `name`, `target`, `inspection_config`, `related_file`) VALUES
+    (1, 119, 10, "root 계정 원격 접속 제한 확인", "ALL", "{}", "U-01.sh"),
+    (2, 135, 11, "패스워드 복잡성 설정 확인", "ALL", "{}", "U-02.sh"),
+    (3, 136, 11, "패스워드 파일 보호 확인", "ALL", "{}", "U-04.sh"),
+    (4, 122, 10, "계정 잠금 임계값 설정 확인", "ALL", "{}", "U-03.sh"),
+    (5, 78, 3, "root 홈, 패스 디렉터리 권한 및 패스 설정 확인", "ALL", "{}", "U-05.sh"),
+    (6, 79, 3, "/etc/passwd 파일 권한 적절성 점검", "ALL", "{}", "U-07.sh");

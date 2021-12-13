@@ -15,14 +15,23 @@ export default {
         let dbData;
 
         try {
+            dbData = await query("SELECT idx from environment WHERE name = ?",[environment]);
+        } catch (err) {
+            console.log(err);
+            return response(res, 500, 'Internal Server Errors : Database error');
+        }
+
+        const environment_idx = dbData[0]["idx"];
+
+        try {
             dbData = await query(
-                'UPDATE device set name = ? , model_name = ?, serial_number = ?, environment = ?, network_info = ?, os_info = ?, service_list = ?, connect_method = ?, update_time = ?\
+                'UPDATE device set name = ? , model_name = ?, serial_number = ?, environment_idx = ?, network_info = ?, os_info = ?, service_list = ?, connect_method = ?, update_time = ?\
                 where idx = ?;',
                 [
                     name,
                     model_name,
                     serial_number,
-                    environment,
+                    environment_idx,
                     network_info,
                     os_info,
                     service_list,

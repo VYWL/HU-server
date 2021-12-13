@@ -38,17 +38,6 @@ export default {
             dbData = await query("SELECT * from device\
                                 WHERE live = 1\
                                 GROUP BY idx;")
-
-            // let deviceQuery = "";
-            // for(let i = 0; i < dbData.length; ++i) {
-            //     const { idx : device_idx } = dbData[i];
-                
-            //     if(i) deviceQuery += `OR idx = ${device_idx} `;
-            //     else deviceQuery += `idx = ${device_idx} `;
-            // }
-
-            // dbData = await query(`SELECT * from device\
-            //                     WHERE ${deviceQuery}`);
         } catch (err) {
             console.log(err);
             return response(res, 404);

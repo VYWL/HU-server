@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `device` (
   `name` text DEFAULT NULL COMMENT '장비 이름',
   `model_name` text DEFAULT NULL COMMENT '장비 모델명',
   `serial_number` varchar(88) DEFAULT NULL COMMENT '서버에서 생성된 시리얼 번호',
+  `init_ip` text DEFAULT NULL COMMENT '관리 서비스 연결용도 ip',
   `environment_idx` int(11) DEFAULT NULL COMMENT '장비 환경 위치',
   `device_category_idx` int(11) unsigned DEFAULT NULL COMMENT '장비 카테고리 idx',
   `network_category_idx` int(11) unsigned DEFAULT NULL COMMENT '장비 네트워크 카테고리 idx',
