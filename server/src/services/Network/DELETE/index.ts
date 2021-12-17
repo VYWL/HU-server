@@ -5,6 +5,8 @@ import express from 'express';
 export default {
     deleteNetworkCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = req.params.category_idx;
+        
+        console.log(`[INFO] Removing network category info :: path = ${req.path}`);
 
         if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
 

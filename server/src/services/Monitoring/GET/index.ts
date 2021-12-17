@@ -1,13 +1,14 @@
 import { requestToAgent } from "@/services/Others/Socket";
-import { getToday, response } from '@/api';
+import { getToday, response, returnDataWithCount } from '@/api';
 import { PROCESS_CODE } from '@/config';
 import { query } from '@/loaders/mysql';
 import express from 'express';
 
 export default {
-    
     getMonitoringDeviceList: async (req: express.Request, res: express.Response) => {
         let dbData;
+
+        console.log(`[INFO] Gathering Monitoring device list :: path = ${req.path}`);
 
         try {
             dbData = await query("SELECT device_idx from monitoring\
@@ -34,6 +35,8 @@ export default {
     getMonitoringPossibleDeviceList: async (req: express.Request, res: express.Response) => {
         let dbData;
 
+        console.log(`[INFO] Gathering possible monitoring device list :: path = ${req.path}`);
+
         try {
             dbData = await query("SELECT * from device\
                                 WHERE live = 1\
@@ -51,6 +54,8 @@ export default {
         const limit = Number(req.query.limit ?? -1);
 
         const filterActive = String(req.path).match("active") ? true : false;
+        
+        console.log(`[INFO] Gathering monitoring list :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -76,6 +81,48 @@ export default {
             return response(res, 404);
         }
 
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM monitoring as m \
+                                    JOIN device as d ON d.idx = m.device_idx\
+                                    ${filterActive ? "WHERE activate = 1" : ""}`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
+    },
+
+    getMonitoringInfo: async (req: express.Request, res: express.Response) => {
+        const monitoring_idx = Number(req.params.monitoring_idx ?? -1);
+
+
+        console.log(`[INFO] Gathering monitoring info :: path = ${req.path}`);
+
+
+        if (monitoring_idx === -1) return response(res, 400, 'Parameter Errors : monitoring_idx must be number.');
+        let dbData;
+
+        try {
+            dbData = await query(
+                "SELECT * FROM monitoring WHERE idx = ?",
+                [monitoring_idx]
+            );
+        } catch (err) {
+            console.log(err);
+            console.log('모니터링 정보를 불러오는데에 실패했습니다.');
+            return response(res, 404);
+        }
+
         return response(res, 200, dbData);
     },
 
@@ -84,6 +131,8 @@ export default {
 
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+
+        console.log(`[INFO] Gathering process info :: path = ${req.path}`);
 
         if (!device_idx) return response(res, 400, 'Parameter Errors : idx must be number.');
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
@@ -107,7 +156,23 @@ export default {
         // Process 
         requestToAgent(device_idx, PROCESS_CODE.PROCESS, "");
         
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM process`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getFileDescriptorList: async (req: express.Request, res: express.Response) => {
@@ -116,6 +181,8 @@ export default {
 
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+
+        console.log(`[INFO] Gathering file descriptor info :: path = ${req.path}`);
 
         if (!device_idx) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (!process_idx) return response(res, 400, 'Parameter Errors : process_idx must be number.');
@@ -143,12 +210,32 @@ export default {
         // Request To Agent
         requestToAgent(device_idx, PROCESS_CODE.FILEDESCRIPTOR, "");
         
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM file_descriptor \
+                                    WHERE device_idx = ? AND pid = ?\
+                                    ORDER BY idx ASC`, [device_idx, process_idx]);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getLogList: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+
+        console.log(`[INFO] Gathering log list :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -168,12 +255,30 @@ export default {
             return response(res, 404);
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM log`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getTotalParsedLog: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering total parsed log :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -211,13 +316,34 @@ export default {
             return returnRow;
         })
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM log as l \
+                                    JOIN monitoring as m \
+                                    ON l.device_idx = m.device_idx AND l.log_path = m.log_path \
+                                    ORDER BY create_time DESC`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getLogByMonitoringIdx: async (req: express.Request, res: express.Response) => {
         const monitoring_idx = Number(req.params.monitoring_idx ?? -1);
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering log by monitoring :: path = ${req.path}`);
 
         if (monitoring_idx === -1) return response(res, 400, 'Parameter Errors : monitoring_idx must be number.');
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
@@ -257,13 +383,34 @@ export default {
             return response(res, 404);
         }
 
-        return response(res, 200, dbData);
+        
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM log \
+                                    WHERE device_idx = ? AND log_path=?\
+                                    ORDER BY create_time DESC`, [device_idx, log_path]);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
     
     getTotalMonitoringLogCountByTime: async (req: express.Request, res: express.Response) => {
         const start = req.query.start ?? '1970-01-01';
         const end = getToday();
         const unitTime = Number(req.query.time ?? 5);
+        
+        console.log(`[INFO] Gathering total monitoring log count by time :: path = ${req.path}`);
 
         let dbData;
 
@@ -317,6 +464,8 @@ export default {
         const intervalMinute = req.query.time ?? 5;
 
         let returnData = [];
+        
+        console.log(`[INFO] Gathering all monitoring stats :: path = ${req.path}`);
 
         let dbData;
         try {

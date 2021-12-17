@@ -8,6 +8,8 @@ export default {
     deletePolicy: async (req: express.Request, res : express.Response) => {
         const policy_idx = Number(req.params.policy_idx ?? -1);
         
+        console.log(`[INFO] Removing policy info :: path = ${req.path}, policy_idx = ${policy_idx}`);
+        
         if (policy_idx === -1) return response(res, 400, 'Parameter Errors : policy_idx must be number.');
        
         let dbData;
@@ -36,6 +38,8 @@ export default {
     deleteCustomPolicy: async (req: express.Request, res : express.Response) => {
         const custom_policy_idx = Number(req.params.custom_policy_idx ?? -1);
         
+        console.log(`[INFO] Removing custom policy info :: path = ${req.path}, custom_policy_idx = ${custom_policy_idx}`);
+
         if (custom_policy_idx === -1) return response(res, 400, 'Parameter Errors : custom_policy_idx must be number.');
        
         let dbData;

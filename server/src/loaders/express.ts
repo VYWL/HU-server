@@ -51,14 +51,13 @@ export default async ({ app }: { app: express.Application }) => {
     // app.get('/devices/:device_idx(\\d+)/policies/inactivate', Device.getInactivePolicyListByDevice);
     app.get('/devices/:device_idx(\\d+)/policies/recommand', Device.getRecommandedPolicyListByDevice);
 
-    // TODO :: checklist => inspection
+    app.get('/devices/:device_idx(\\d+)/status', Device.getIsLiveByDevice);
     app.get('/devices/:device_idx(\\d+)/inspection/recommand', Device.getRecommandedInspectionByDevice);
-    app.get('/devices/:device_idx(\\d+)/live', Device.getIsLiveByDevice);
 
     app.post('/devices', Device.addDevice);
-    // TODO :: categories 에서 category
     app.post('/devices/categories', Device.addCategory);
     app.post('/devices/environments');
+    app.post('/devices/:device_idx(\\d+)/status', Device.changeDeviceStatus);
 
     app.put('/devices/:device_idx(\\d+)?', Device.editDeviceInfo);
     app.put('/devices/categories/:category_idx(\\d+)?', Device.editDeviceCategoryInfo);
@@ -128,7 +127,10 @@ export default async ({ app }: { app: express.Application }) => {
     // Monitoring req
     app.get('/monitoring', Monitoring.getMonitoringList);
     app.get('/monitoring/devices/', Monitoring.getMonitoringPossibleDeviceList);
-    app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
+
+    app.get('/monitoring/:monitoring_idx(\\d+)', Monitoring.getMonitoringInfo);
+    app.get('/monitoring/log/:monitoring_idx(\\d+)', Monitoring.getLogByMonitoringIdx);
+
     app.get('/monitoring/log', Monitoring.getTotalParsedLog);
     app.get('/monitoring/log/count', Monitoring.getTotalMonitoringLogCountByTime);
     app.get('/monitoring/statistics', Monitoring.getAllMonitoringStats);
@@ -145,6 +147,11 @@ export default async ({ app }: { app: express.Application }) => {
         Monitoring.gatherFileDescriptorList
     );
     app.post('/monitoring/:device_idx(\\d+)/process', Monitoring.gatherProcessList);
+
+    app.put('/monitoring/:monitoring_idx(\\d+)', Monitoring.editMonitoring);
+
+    app.delete('/monitoring/:monitoring_idx(\\d+)', Monitoring.deleteMonitoring);
+
 
     // Network req
     app.get('/networks/categories', Network.getNetworkCategoryList);
@@ -173,12 +180,7 @@ export default async ({ app }: { app: express.Application }) => {
     app.get('/download/rasp', Others.getRaspBuildFile);
 
     app.use((req, res, next) => {
-        console.log(`ERROR : 404 (${req.path})`)
-
-        console.log(`[${getToday(true)}] `);
-        const err = new Error('Not Found');
-        err['status'] = 404;
-        next(err);
+        next(`[ERROR] Not found :: path = ${req.path}, timestamp = ${getToday(true)}`);
     });
 
     // ...More middlewares

@@ -8,7 +8,8 @@ if (envFound.error) {
 
 module.exports = {
     // About service
-    PORT: Number(process.env.HU_SERVICE_PORT),
+    SERVICE_IP: process.env.HU_SERVICE_IP,
+    SERVICE_PORT: Number(process.env.HU_SERVICE_PORT),
 
     // About DB
     DB_ID: process.env.HU_DATABASE_ID,
@@ -35,6 +36,11 @@ module.exports = {
         INSPECTION_REQUEST: 8,
         CHANGE_INTERVAL_REQUEST: 9,
         RESPONSE: 10,
+
+        // Init Agent,
+        SET_INIT_ENV : 100,
+        AGENT_START : 101,
+        AGENT_STOP : 102,
     },
     
 };

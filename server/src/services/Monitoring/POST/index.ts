@@ -7,6 +7,8 @@ import express from 'express';
 export default {
     gatherProcessList: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
+        
+        console.log(`[INFO] Gathering all process info :: path = ${req.path}`);
 
         if (!device_idx) return response(res, 400, 'Parameter Errors : device_idx must be number.');
 
@@ -32,6 +34,8 @@ export default {
     gatherFileDescriptorList: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
         const process_idx = req.params.process_idx;
+        
+        console.log(`[INFO] Gathering file descriptor info :: path = ${req.path}`);
 
         if (!device_idx) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (!process_idx) return response(res, 400, 'Parameter Errors : process_idx must be number.');
@@ -61,13 +65,15 @@ export default {
         const path = String(req.body.path ?? "");
         const process_name = String(req.body.process_name ?? "");
         const isActive = req.body.isActive;
-        const regex = req.body.regex ?? null;
+        const regex = (req.body.regex === undefined || req.body.regex === [] || req.body.regex === {}) ? null : req.body.regex;
+        
+        console.log(`[INFO] Setting monitoring state :: path = ${req.path}`);
 
         if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (path === "") return response(res, 400, 'Parameter Errors : path does not exist.');
         if (process_name === "") return response(res, 400, 'Parameter Errors : process_name does not exist.');
         if (isActive === undefined) return response(res, 400, 'Parameter Errors : isActive does not exist.');
-        if (regex === null) return response(res, 400, "Parameter Errors : regex does not exist.")
+        if (regex === null) return response(res, 400, "Parameter Errors : regex does not exist.");
 
         const stateValue = Boolean(isActive);
 

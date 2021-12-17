@@ -10,6 +10,8 @@ export default {
 
         let returnData = [];
 
+        console.log(`[INFO] Gathering Dashboard All stats :: path = ${req.path}`);
+
         let dbData;
         try {
             dbData = await query(
@@ -113,6 +115,8 @@ export default {
         const start = req.query.start ?? '1970-01-01';
         const end = getToday();
         const unitTime = Number(req.query.time ?? 5);
+
+        console.log(`[INFO] Gathering total log by time :: path = ${req.path}`);
 
         let dbData;
 

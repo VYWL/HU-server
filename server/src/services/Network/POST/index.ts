@@ -5,6 +5,8 @@ import express from 'express';
 export default {
     addNetworkCategoryInfo: async (req: express.Request, res: express.Response) => {
         const { name } = req.body;
+        
+        console.log(`[INFO] Adding network category info :: path = ${req.path}`);
 
         if (!name) response(res, 400, 'Parameter Errors : name does not exist.');
 

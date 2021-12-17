@@ -7,6 +7,8 @@ import { PROCESS_CODE } from '@/config';
 export default {
     deleteInspection: async (req: express.Request, res: express.Response) => {
         const inspection_idx = Number(req.query.inspection_idx ?? -1);
+        
+        console.log(`[INFO] Removing inspection info :: path = ${req.path}`);
 
         if(inspection_idx === -1) return response(res, 400, 'Parameter Errors : inspection_idx does not exist.');
                 
@@ -24,9 +26,6 @@ export default {
         }
 
         try {
-
-            // 외래키 이슈 => log, inspection_log, module 삭제해야함.
-
             dbData = await query('DELETE FROM inspection WHERE idx = ?;', [inspection_idx]);
         } catch (err) {
             console.log(err);

@@ -1,10 +1,14 @@
 #!/bin/bash
 sudo docker-compose stop
 
+clear
+
 sudo docker rm $(sudo docker ps -aq)
 sudo rm -rf ./db/data
 
 sudo docker-compose up --build -d
+
+clear
 
 sleep 5
 

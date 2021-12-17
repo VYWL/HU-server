@@ -7,6 +7,8 @@ export default {
     editSecurityCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = req.params.category_idx;
         const { main, sub } = req.body;
+        
+        console.log(`[INFO] Editing security category info :: path = ${req.path}`);
 
         if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
         if (!main) response(res, 400, 'Parameter Errors : main does not exist.');

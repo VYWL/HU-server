@@ -1,6 +1,6 @@
 import express from 'express';
 import { query } from '@/loaders/mysql';
-import { defaultResponse, getToday, response } from '@/api';
+import { defaultResponse, getToday, response, returnDataWithCount } from '@/api';
 import { requestToAgent } from "@/services/Others/Socket";
 import { PROCESS_CODE } from '@/config';
 
@@ -8,6 +8,8 @@ export default {
     getAllDeviceList: async (req, res: express.Response) => {
         // 모든 장비 리스트를 가져온다
         // 페이지가 구분되어있는듯 하다. param에 있음.
+
+        console.log(`[INFO] Gathering All Device Info :: path = ${req.path}`);
 
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
@@ -20,10 +22,10 @@ export default {
 
         try {
             dbData = await query(
-                'SELECT `device`.`idx` as idx, `device`.`name` as name, `device`.`model_name` as model_name, `device`.`serial_number` as serial_number,\
-                `environment`.`name` as environment, `device_category`.`name` as category, `network_category`.`name` as network,\
-                IF(`device`.`live` = 1, TRUE, FALSE) as live, `device`.`update_time` as update_time\
-                FROM device\
+                                'SELECT `device`.`idx` as idx, `device`.`name` as name, `device`.`model_name` as model_name, `device`.`serial_number` as serial_number,\
+                                `environment`.`name` as environment, `device_category`.`name` as category, `network_category`.`name` as network,\
+                                IF(`device`.`live` = 1, TRUE, FALSE) as live, `device`.`update_time` as update_time\
+                                FROM device\
                                 LEFT JOIN device_category ON device_category.idx = device.device_category_idx\
                                 LEFT JOIN network_category ON network_category.idx = device.network_category_idx\
                                 LEFT JOIN environment ON environment.idx = device.environment_idx\
@@ -45,11 +47,36 @@ export default {
             return { ...e, live: isLive };
         });
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM device\
+                                    LEFT JOIN device_category ON device_category.idx = device.device_category_idx\
+                                    LEFT JOIN network_category ON network_category.idx = device.network_category_idx\
+                                    LEFT JOIN environment ON environment.idx = device.environment_idx\
+                                    ORDER BY device.idx ASC`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getDeviceInfo: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
+        const device_idx = Number(req.params.device_idx ?? -1);
+
+        console.log(`[INFO] Gathering specific device Info :: path = ${req.path}`);
+
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
+
 
         let dbData;
 
@@ -57,7 +84,7 @@ export default {
             dbData = await query(
                 "SELECT `device`.`idx` as idx, `device`.`name` as name, `device`.`model_name` as model_name, `device`.`serial_number` as serial_number,\
             `environment`.`name` as environment, `device_category`.`name` as category, `network_category`.`name` as network,\
-            IF(`device`.`live` = 1, TRUE, FALSE) as live, `device`.`update_time` as update_time,\
+            IF(`device`.`live` = 1, TRUE, FALSE) as live, `device`.`update_time` as update_time, `device`.`init_ip` as `init_ip`,\
             `device`.`network_info`as network_info, `device`.`os_info` as os_info, `device`.`service_list` as service_list, `device`.`connect_method` as connect_method\
             FROM `device`\
             LEFT JOIN `device_category` ON `device_category`.`idx` = `device`.`device_category_idx`\
@@ -71,15 +98,18 @@ export default {
 
             return response(res, 404);
         }
-
-        return response(res, 200, dbData);
-
+        
         // UPDATE DEVICE INFO
         requestToAgent(device_idx, PROCESS_CODE.DEVICE, "");
+
+
+        return response(res, 200, dbData);
     },
 
     getAllDeviceCategories: async (req: express.Request, res: express.Response) => {
         let dbData;
+
+        console.log(`[INFO] Gathering all device category Info :: path = ${req.path}`);
 
         try {
             dbData = await query(
@@ -99,6 +129,8 @@ export default {
 
     getDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = Number(req.params.category_idx);
+
+        console.log(`[INFO] Gathering specific device category Info :: path = ${req.path}`);
 
         let dbData = [];
 
@@ -121,6 +153,8 @@ export default {
 
     getDeviceEnvList: async (req: express.Request, res: express.Response) => {
         let dbData;
+        
+        console.log(`[INFO] Gathering all device env Info :: path = ${req.path}`);
 
         try {
             dbData = await query(
@@ -142,6 +176,8 @@ export default {
 
         let dbData;
 
+        console.log(`[INFO] Gathering specific device env Info :: path = ${req.path}`);
+
         try {
             dbData = await query(
                             "SELECT idx, name\
@@ -161,6 +197,8 @@ export default {
     getDeviceCount: async (req: express.Request, res: express.Response) => {
         let dbData;
 
+        console.log(`[INFO] Gathering device count :: path = ${req.path}`);
+
         try {
             dbData = await query('SELECT COUNT(*) as device_count FROM device');
         } catch (err) {
@@ -174,6 +212,8 @@ export default {
     getUnregisteredDeviceList: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering unregistered device count :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -201,7 +241,28 @@ export default {
             return response(res, 500, 'Internel Server Error : Database error');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query("SELECT COUNT(*) as count FROM `device`\
+                                LEFT JOIN `device_category` ON `device_category`.`idx` = `device`.`device_category_idx`\
+                                LEFT JOIN `network_category` ON `network_category`.`idx` = `device`.`network_category_idx`\
+                                LEFT JOIN `environment` ON `environment`.`idx` = `device`.`environment_idx`\
+                                WHERE `device`.`live` = 0\
+                                ORDER BY `device`.`idx` ASC");
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getStatisticsByDevice: async (req: express.Request, res: express.Response) => {
@@ -211,6 +272,8 @@ export default {
         const unitTime = Number(req.query.time ?? 5);
         const end = getToday();
 
+        console.log(`[INFO] Gathering stats by device :: path = ${req.path}`);
+
         if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (start === '1970-01-01') return response(res, 400, 'Parameter Errors : startDate must be date.');
         
@@ -219,7 +282,7 @@ export default {
         let dbData;
         try {
             dbData = await query(
-                'SELECT status, Count(*) AS count\
+                                'SELECT status, Count(*) AS count\
                                 FROM log\
                                 WHERE TIMESTAMP(?) <= TIMESTAMP(create_time) AND TIMESTAMP(create_time) <= TIMESTAMPADD(MINUTE, ?, ?) AND device_idx = ?\
                                 GROUP BY status\
@@ -308,6 +371,8 @@ export default {
 
         const start = req.query.start ?? '1970-01-01';
         const end = getToday();
+        
+        console.log(`[INFO] Gathering stats by threat :: path = ${req.path}`);
 
         if(device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
 
@@ -336,13 +401,14 @@ export default {
     },
 
     getModuleListByDevice: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
-
-        // TODO :: IF문 작성
+        const device_idx = Number(req.params.device_idx ?? -1);
 
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
+        console.log(`[INFO] Gathering modules by device :: path = ${req.path}`);
+
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
@@ -365,12 +431,34 @@ export default {
             return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query("SELECT COUNT(*) as count FROM module m\
+                                    JOIN module_category mc ON mc.idx = m.module_category_idx\
+                                    JOIN network_category nc ON nc.idx = m.network_category_idx\
+                                    WHERE device_idx = ?\
+                                    ORDER BY m.idx ASC");
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getTotalLog: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering total log :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -393,18 +481,40 @@ export default {
             return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query("SELECT COUNT(*) as count FROM log l\
+                                    LEFT OUTER JOIN security_category sc\
+                                    ON sc.idx = l.security_category_idx\
+                                    ORDER BY l.idx ASC");
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getLogByDevice: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
+        const device_idx = Number(req.params.device_idx ?? -1);
+        
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
-
+        
+        console.log(`[INFO] Gathering logs by device :: path = ${req.path}`);
+        
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
-        if (!device_idx) return response(res, 400, 'Parameter Errors : idx must be number.');
-
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
+        
         const offset = limit * (page - 1);
 
         let dbData;
@@ -424,11 +534,33 @@ export default {
             return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query("SELECT COUNT(*) as count FROM log l\
+                                    LEFT OUTER JOIN security_category sc\
+                                    ON sc.idx = l.security_category_idx\
+                                    WHERE device_idx = ?\
+                                    ORDER BY l.idx ASC", [device_idx]);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getTotalLogCount: async (req: express.Request, res: express.Response) => {
         let dbData;
+
+        console.log(`[INFO] Gathering total log count :: path = ${req.path}`);
 
         try {
             dbData = await query('SELECT COUNT(*) as total_log_count FROM log l');
@@ -441,9 +573,11 @@ export default {
     },
 
     getLogCountByDevice: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
-
-        // TODO :: IF문 작성
+        const device_idx = Number(req.params.device_idx ?? -1);
+        
+        console.log(`[INFO] Gathering total log count by device :: path = ${req.path}`);
+        
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
 
         let dbData;
 
@@ -460,6 +594,8 @@ export default {
     getPolicyListByDevice: async (req: express.Request, res: express.Response) => {
         const device_idx = req.params.device_idx;
         const status = req.query.status;
+
+        console.log(`[INFO] Gathering policy list by device :: path = ${req.path}`);
 
         let isActive;
 
@@ -504,6 +640,8 @@ export default {
 
         // TODO :: IF문 작성
 
+        console.log(`[INFO] Gathering recommanded policy list by device :: path = ${req.path}`);
+
         let dbData;
 
         try {
@@ -532,6 +670,8 @@ export default {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
 
+        console.log(`[INFO] Gathering recommanded inspection list by device :: path = ${req.path}`);
+
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
 
@@ -558,13 +698,38 @@ export default {
             return response(res, 500, 'Internal Server Error : Database error');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query("SELECT COUNT(*) as count FROM device_recommand dr\
+                                    JOIN device d\
+                                    ON d.device_category_idx = dr.device_category_idx\
+                                    JOIN inspection_step p\
+                                    ON p.idx = dr.security_category_idx\
+                                    JOIN security_category sc\
+                                    ON p.security_category_idx = sc.idx\
+                                    WHERE d.idx = ?", [device_idx]);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getIsLiveByDevice: async (req: express.Request, res: express.Response) => {
-        const device_idx = req.params.device_idx;
-
-        // TODO :: IF문 작성
+        const device_idx = Number(req.params.device_idx ?? -1);
+        
+        console.log(`[INFO] Gathering device status info :: path = ${req.path}`);
+        
+        if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx does not exists');
 
         let dbData;
 

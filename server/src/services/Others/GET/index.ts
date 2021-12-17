@@ -7,6 +7,8 @@ export default {
     getSecurityCategoryList: async (req: express.Request, res: express.Response) => {
         let dbData;
 
+        console.log(`[INFO] Gathering security category list :: path = ${req.path}`);
+
         try {
             dbData = await query("SELECT * FROM security_category");
         }
@@ -20,6 +22,8 @@ export default {
     },
     getSecurityCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = Number(req.params.category_idx ?? -1);
+
+        console.log(`[INFO] Gathering security category info :: path = ${req.path}`);
 
         if (category_idx === -1) response(res, 400, 'Parameter Errors : idx must be number.');
         

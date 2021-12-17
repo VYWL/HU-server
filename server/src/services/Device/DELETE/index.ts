@@ -5,6 +5,8 @@ import express from 'express';
 export default {
     deleteDeviceInfo: async (req: express.Request, res: express.Response) => {
         const device_idx = Number(req.params.device_idx ?? -1);
+        
+        console.log(`[INFO] Removing Device Info :: path = ${req.path}`);
 
         if (device_idx === -1) return response(res, 400, 'Parameter Errors : device_idx must be number.');
 
@@ -36,6 +38,8 @@ export default {
 
     deleteDeviceCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = Number(req.params.category_idx ?? -1);
+
+        console.log(`[INFO] Removing Device Category Info :: path = ${req.path}`);
 
         if (category_idx === -1) return response(res, 400, 'Parameter Errors : category_idx must be number.');
 

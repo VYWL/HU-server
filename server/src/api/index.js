@@ -108,3 +108,12 @@ export const parseList = (arr = [], n = 1) => {
 
     return returnList;
 };
+
+
+export const returnDataWithCount = dataList => {
+    if(dataList === undefined) return { count : 0, data : [] };
+
+    const count = dataList.length;
+    
+    return { count, data : dataList }
+}

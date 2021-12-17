@@ -1,6 +1,6 @@
 const express = require('express');
 const loaders = require('./loaders');
-const { PORT } = require('./config');
+const { SERVICE_PORT } = require('./config');
 
 // for Debug
 console.clear();
@@ -10,7 +10,7 @@ async function startServer() {
 
     await loaders.default({ expressApp: app });
 
-    app.listen(PORT, err => {
+    app.listen(SERVICE_PORT, err => {
         if (err) {
             console.log(err);
             return;

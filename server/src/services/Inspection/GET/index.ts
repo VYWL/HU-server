@@ -1,22 +1,35 @@
 import express from 'express';
 import { query } from '@/loaders/mysql';
-import { defaultResponse, getToday, response } from '@/api';
+import { defaultResponse, getToday, response, returnDataWithCount } from '@/api';
 import { requestToAgent } from "@/services/Others/Socket";
 import { PROCESS_CODE } from '@/config';
 
 export default {
     getInspectionList: async (req: express.Request, res: express.Response) => {
+
+        const page = Number(req.query.page ?? -1);
+        const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering inspection info list :: path = ${req.path}`);
+
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
+
+        
+        const offset = limit * (page - 1);
+        
         let dbData;
 
         try {
-            dbData = await query("SELECT * FROM inspection;");
+            dbData = await query("SELECT * FROM inspection\
+                                LIMIT ? OFFSET ?;", [limit, offset]);
         } catch (err) {
             console.log(err);
             return response(res, 500, 'Internal Server Errors : Database Error');
         }
 
         const returnData = [];
-        console.log({msg:`GET /inspection :: dbData(${dbData.length})`});
+        console.log(`[INFO] Inspection Data Found :: count = ${dbData.length}`);
 
         for(let i = 0; i < dbData.length; ++i) {
             const { policy_idx, security_category_idx } = dbData[i];
@@ -39,11 +52,29 @@ export default {
             })
         }
 
-        return response(res, 200, returnData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM inspection`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getTaskInfoList: async (req: express.Request, res: express.Response) => {
         let dbData;
+
+        console.log(`[INFO] Gathering task info list :: path = ${req.path}`);
 
         try {
             dbData = await query("SELECT * FROM inspection_log");

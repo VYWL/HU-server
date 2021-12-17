@@ -16,8 +16,9 @@ export default {
 
         const inspection_idx = req.params.inspection_idx ?? -1;
 
+        console.log(`[INFO] Editing inspection info :: path = ${req.path}`);
+
         if (inspection_idx === -1) return response(res, 400, 'Parameter Errors : inspection_idx does not exist.');
-        // TODO :: body 속성별로 파라미터값이 없다는 오류
 
         let dbData;
 

@@ -13,7 +13,10 @@ const insertProcessList = async (socket_info, data) => {
     const device_idx = socket_info['ref'].device_idx;
     const timestamp = getToday(true);
 
+    console.log(`[INFO] Inserting process list :: device_idx = ${device_idx}, length = ${processList['metainfo'].length}`);
+
     if (device_idx === -1) return;
+
     let dbData;
 
     try {
@@ -54,6 +57,8 @@ const insertFileDescriptorList = async (socket_info, data) => {
     const device_idx = socket_info['ref'].device_idx;
     const timestamp = getToday(true);
 
+    console.log(`[INFO] Inserting file descriptor list :: device_idx = ${device_idx}, length = ${fdList['metainfo'].length}`);
+
     if (device_idx === -1) return;
 
     let dbData;
@@ -86,6 +91,8 @@ const insertMonitoringResult = async (socket_info, data) => {
     const device_idx = socket_info['ref'].device_idx;
     const timestamp = getToday(true);
 
+    console.log(`[INFO] Inserting monitoring result :: device_idx = ${device_idx}, length = ${monitorResult}`);
+
     if (device_idx === -1) return;
 
     let dbData;
@@ -115,10 +122,11 @@ const insertMonitoringLog = async (socket_info, data) => {
     const log_data = monitorInfo['metainfo']['log_data'];
     const log_path = log_data["log_path"];
     const change_data = log_data["change_data"];
-
-
     const device_idx = socket_info['ref'].device_idx;
     const timestamp = getToday(true);
+
+    // console.log(`[INFO] Inserting monitoring log :: device_idx = ${device_idx}`);
+
 
     if (device_idx === -1) return;
 
@@ -146,7 +154,9 @@ const insertMonitoringLog = async (socket_info, data) => {
         return;
     }
 
-    console.log({msg: "success", data : dbData});
+    // console.log({msg: "success", data : dbData});
+
+    // console.log(`[INFO] Monitoring data successfully inserted :: device_idx = ${device_idx}, log_path = ${log_path}, insertId = ${dbData["insertId"]}`)
 };
 
 const updateDeviceInfo = async (socket_info, data) => {
@@ -164,6 +174,10 @@ const updateDeviceInfo = async (socket_info, data) => {
 
     let dbData;
 
+    // console.log(`[DEBUG]`)
+    // console.log({networkInfo, osInfo, serviceList, connect_method, isLive, socketCode, update_time, serialNumber})    
+    // console.log(`[DEBUG]`)
+
     try {
         dbData = await query(
             'UPDATE `device`\
@@ -180,6 +194,9 @@ const updateDeviceInfo = async (socket_info, data) => {
         console.log({msg: "FAILED", data : dbData});
     }
 
+    console.log(`[INFO] Updating device info :: device_idx = ${socket_info["ref"].device_idx}, serviceList = ${serviceList.length}`);
+
+
     console.log(`Socket Info Updated :: port = ${socket_info["ref"].remotePort}, device_idx = ${socket_info["ref"].device_idx}`);
 
 };
@@ -189,6 +206,8 @@ const updateDeviceStatus = async (socket_info, data) => {
 
     const socketCode = socket_info['ref'].id;
     const timestamp = getToday(true);
+
+    console.log(`[INFO] Updating device status :: device_idx = ${socket_info['ref'].device_idx}, socketCode = ${socketCode}`);
 
     let dbData;
 
@@ -399,7 +418,7 @@ const requestToAgent = (device_idx, p_code, bodyData) => {
     const s_data = JSON.stringify(body);
     const s_msg = makeMsg(s_data);
     
-    console.log(`[INFO] Sending To Agent a message :: device_idx = ${device_idx}, msg : ${s_msg}`);
+    console.log(`[INFO] Sending To Agent a message :: device_idx = ${device_idx}, msgLength : ${s_msg.length}`);
 
     // send Data
     socketRef.write(s_msg);
@@ -432,6 +451,14 @@ const handleResponse = async (socket_info, data) => {
     }
 }
 
+const setAgentManagerEnvInfo = async (socket_info, data) => {
+    const isSuccess = data === "Success";
+
+    if(isSuccess) console.log(`[INFO] Successfully set HurryupAM env file :: device_idx = ${socket_info["ref"].device_idx}`);
+    else console.log(`[ERROR] Failed to set HurryupAM env file :: device_idx = ${socket_info["ref"].device_idx}`);
+}
+
+
 const processCodeList = [
     { protocol: PROCESS_CODE.PROCESS, cbFunc: insertProcessList },
     { protocol: PROCESS_CODE.FILEDESCRIPTOR, cbFunc: insertFileDescriptorList },
@@ -443,11 +470,15 @@ const processCodeList = [
     // { protocol: 12, cbFunc: insertPolicyResult },
     // { protocol: PROCESS_CODE.INSPECTION_REQUEST, cbFunc: sendInspectionRequest },
     // { protocol: PROCESS_CODE.INSPECTION_RESULT, cbFunc: updateInspectionResult },
-    { protocol: PROCESS_CODE.RESPONSE, cbFunc : handleResponse }
+    { protocol: PROCESS_CODE.RESPONSE, cbFunc : handleResponse },
+    { protocol: PROCESS_CODE.SET_INIT_ENV, cbFunc : setAgentManagerEnvInfo }
 ];
 
 
 const editDeviceInfoBySocketCode = async (socketCode = '') => {
+    
+    console.log(`[INFO] Editing device info by socket code :: socketCode = ${socketCode}`);
+
     if (!socketCode) return;
 
     let dbData;

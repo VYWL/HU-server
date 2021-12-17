@@ -6,6 +6,8 @@ export default {
     editNetworkCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = req.params.category_idx;
         const { name } = req.body;
+        
+        console.log(`[INFO] Editing network category info :: path = ${req.path}`);
 
         if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
         if (!name) response(res, 400, 'Parameter Errors : name does not exist.');

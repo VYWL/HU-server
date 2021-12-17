@@ -14,6 +14,8 @@ export default {
             inspection_config = {},
             related_file = ""
         } = req.body;
+        
+        console.log(`[INFO] Adding inspection info :: path = ${req.path}`);
 
         if (policy_idx === -1) return response(res, 400, 'Parameter Errors : policy_idx does not exist.');
         if (security_category_idx === -1) return response(res, 400, 'Parameter Errors : security_category_idx does not exist.');
@@ -38,6 +40,8 @@ export default {
 
     excuteTask: async (req: express.Request, res: express.Response) => {
         const taskList = req.body.apply_list ?? null;
+
+        console.log(`[INFO] Executing inspection task :: path = ${req.path}`);
 
         if(taskList === null) return response(res, 400, 'Parameter Errors : apply_list does not exist.');
 

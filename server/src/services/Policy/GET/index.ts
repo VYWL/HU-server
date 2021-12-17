@@ -1,4 +1,4 @@
-import { response } from '@/api';
+import { response, returnDataWithCount } from '@/api';
 import { query } from '@/loaders/mysql';
 import express from 'express';
 
@@ -6,6 +6,8 @@ export default {
     getPolicyList: async (req: express.Request, res: express.Response) => {
         const page = Number(req.query.page ?? -1);
         const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering policy list :: path = ${req.path}`);
 
         if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
         if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
@@ -29,11 +31,32 @@ export default {
             return response(res, 500, 'Internal Server Errors : Database Errors');
         }
 
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM policy p\
+                                    LEFT JOIN security_category s\
+                                    ON p.security_category_idx = s.idx \
+                                    ORDER BY p.idx ASCC`);
+
+            totalCount = totalCount[0]["count"];
+        } catch {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     getPolicyInfo: async (req: express.Request, res: express.Response) => {
         const policy_idx = Number(req.params.policy_idx ?? -1);
+
+        console.log(`[INFO] Gathering policy info :: path = ${req.path}`);
 
         if (policy_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
 
@@ -41,7 +64,7 @@ export default {
 
         try {
             dbData = await query(
-                "SELECT p.idx as idx, main, sub, classify, NAME as name, description, IF(isfile = 1, true, false) as isfile, apply_content, release_content, p.argument as argument, command\
+                "SELECT p.idx as idx, main, sub, classify, NAME as name, description, IF(isfile = 1, true, false) as isfile, apply_content, release_content, p.argument as argument, p.security_category_idx as security_category_idx, command\
                             FROM policy p \
                             LEFT JOIN security_category s \
                             ON p.security_category_idx = s.idx \
@@ -67,6 +90,8 @@ export default {
 
     getDeviceListByPolicy: async (req: express.Request, res: express.Response) => {
         const policy_idx = Number(req.params.policy_idx ?? -1);
+        
+        console.log(`[INFO] Gathering device list by policy :: path = ${req.path}, policy_idx = ${policy_idx}`);
 
         if (policy_idx === -1) return response(res, 400, 'Parameter Errors : idx must be number.');
         
@@ -117,6 +142,13 @@ export default {
         const policy_idx = Number(req.query.policy_idx ?? -1);
         const activate = req.query.activate;
         const custom_policy_idx = Number(req.query.idx ?? -1);
+        const page = Number(req.query.page ?? -1);
+        const limit = Number(req.query.limit ?? -1);
+        
+        console.log(`[INFO] Gathering custom policy list :: path = ${req.path}, custom_policy_idx = ${custom_policy_idx}`);
+
+        if (page === -1) return response(res, 400, 'Parameter Errors : page must be number.');
+        if (limit === -1) return response(res, 400, 'Parameter Errors : limit must be 2 digits number');
         
         if (custom_policy_idx !== -1) filterList.push(`pc.idx=${custom_policy_idx}`);
         else {
@@ -126,21 +158,43 @@ export default {
         }
         
         let dbData;
-        
+        const offset = limit + (page - 1);
+
         try {
             dbData = await query(`SELECT pc.idx as idx, sc.idx as security_category_idx, p.idx as policy_idx, sc.main as main, sc.sub as sub, p.classify as classify, p.name as name, d.name as target, device_idx, p.description as description, activate\
             FROM policy_custom as pc\
             JOIN policy as p ON p.idx = pc.policy_idx\
             JOIN security_category as sc ON sc.idx = pc.security_category_idx\
             JOIN device as d ON d.idx = pc.device_idx\
-            ${filterList.length !== 0 ? "WHERE " + filterList.join(' AND ') : ""}`);
+            ${filterList.length !== 0 ? "WHERE " + filterList.join(' AND ') : ""}\
+            LIMIT ? OFFSET ?`, [limit, offset]);
         } catch (err) {
             console.log(err);
             console.log('사용자 정의 정책 설정값 목록 정보를 불러오는데에 실패했습니다.');
             return response(res, 404);
         }
         
-        return response(res, 200, dbData);
+        let totalCount;
+
+        try {
+            totalCount = await query(`SELECT COUNT(*) as count FROM policy_custom as pc\
+                                    JOIN policy as p ON p.idx = pc.policy_idx\
+                                    JOIN security_category as sc ON sc.idx = pc.security_category_idx\
+                                    JOIN device as d ON d.idx = pc.device_idx\
+                                    ${filterList.length !== 0 ? "WHERE " + filterList.join(' AND ') : ""}`);
+
+            totalCount = totalCount[0]["count"];
+        } catch (err) {
+            console.log(err);
+            return response(res, 404);
+        }
+
+        const responseData = {
+            count : totalCount,
+            data : dbData
+        }
+
+        return response(res, 200, responseData);
     },
 
     downloadPolicyFiles: async (req: express.Request, res: express.Response) => {},

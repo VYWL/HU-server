@@ -6,6 +6,8 @@ export default {
     getNetworkCategoryList: async (req: express.Request, res: express.Response) => {
         let dbData;
 
+        console.log(`[INFO] Gathering network category list :: path = ${req.path}`);
+
         try {
             dbData = await query('SELECT idx, name FROM `network_category` ORDER BY `idx` ASC;');
         } catch (err) {
@@ -13,16 +15,15 @@ export default {
             response(res, 500, 'Internal Server Errors : Database error');
         }
 
-        // TODO 카테고리 모델 번호 기능 추가 필요, API 분할 필요한 듯 (동현)
-
         response(res, 200, dbData);
     },
 
     getNetworkCategoryInfo: async (req: express.Request, res: express.Response) => {
         const category_idx = req.params.category_idx;
+        
+        console.log(`[INFO] Gathering network category info :: path = ${req.path}`);
 
         if (!category_idx) response(res, 400, 'Parameter Errors : category_idx does not exist.');
-        // TODO :: body 속성 검증
 
         let dbData;
 
@@ -32,8 +33,6 @@ export default {
             console.log(err);
             response(res, 500, 'Internal Server Errors : Database error');
         }
-
-        // TODO 카테고리 모델 번호 기능 추가 필요, API 분할 필요한 듯 (동현)
 
         response(res, 200, dbData);
     },
